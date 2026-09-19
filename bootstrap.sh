@@ -43,14 +43,17 @@ mkdir -p "$HOME/.zsh-custom"
 [[ -f "$HOME/.zsh-custom/env.zsh" ]]     || touch "$HOME/.zsh-custom/env.zsh"
 [[ -f "$HOME/.zsh-custom/aliases.zsh" ]] || touch "$HOME/.zsh-custom/aliases.zsh"
 
+# Homebrew — idempotent install.
+if ! command -v brew &>/dev/null; then
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 # herdr — idempotent install.
 if ! command -v herdr &>/dev/null; then
-  if command -v brew &>/dev/null; then
-    echo "Installing herdr..."
-    brew install herdr
-  else
-    echo "  ! Homebrew not found — install from https://brew.sh, then rerun this script for herdr."
-  fi
+  echo "Installing herdr..."
+  brew install herdr
 fi
 if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
   if command -v npx &>/dev/null; then

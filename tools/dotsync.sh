@@ -26,3 +26,23 @@ pulldot() {
     git pull && ./bootstrap.sh
   )
 }
+
+pushbrewfile() {
+  (
+    cd "$DOTFILES_REPO" || return 1
+    brew bundle dump --file=config/Brewfile --force
+    git add -A
+    git commit -m "sync: Brewfile $(date +%F)" || echo "Nothing to commit."
+
+    git -c credential.helper= \
+        -c credential.helper='!f() { echo username=x-access-token; echo "password=$(gh auth token -u 21-BreakinCode)"; }; f' \
+        push
+  )
+}
+
+pullbrewfile() {
+  (
+    cd "$DOTFILES_REPO" || return 1
+    git pull && brew bundle install --file=config/Brewfile
+  )
+}

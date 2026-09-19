@@ -93,6 +93,10 @@ export PATH="$HOME/.local/bin:$PATH"
 alias vi="nvim"
 alias vim="nvim"
 
+alias lgit="lazygit"
+alias ldk="lazydocker"
+alias tf="terraform"
+
 alias envconfig="vim ${CUSTOM_ENV_PATH}"
 alias aliasconfig="vim ${CUSTOM_ALIAS_PATH}"
 alias zshconfig="vim ~/.zshrc"
