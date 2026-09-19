@@ -51,6 +51,15 @@ if command -v herdr &>/dev/null; then
   npx -y skills add herdrdev/herdr --skill herdr -g
 fi
 
+# Push access: route HTTPS auth for this repo through gh (avoids SSH
+# cross-account issues and macOS Keychain prompts in non-interactive shells).
+if command -v gh &>/dev/null; then
+  git config --local credential.helper ""
+  git config --local --add credential.helper "!gh auth git-credential"
+else
+  echo "  ! gh CLI not found — install it and run 'gh auth login' before pushdot can push."
+fi
+
 # Git identity — pushdot's first commit needs this.
 if [[ -z "$(git config user.email 2>/dev/null || true)" ]]; then
   echo ""
