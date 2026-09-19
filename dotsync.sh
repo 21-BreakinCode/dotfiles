@@ -10,14 +10,12 @@ pushdot() {
     git add -A
     git commit -m "sync: $(date +%F)" || echo "Nothing to commit."
 
-    # gh's git-credential helper only serves the currently active account,
-    # and this repo lives under 21-BreakinCode — swap to it for the push,
-    # then restore whatever account was active before.
-    local prev_account
-    prev_account="$(gh api user -q .login 2>/dev/null || true)"
-    gh auth switch --hostname github.com --user 21-BreakinCode >/dev/null 2>&1
-    git push
-    [[ -n "$prev_account" ]] && gh auth switch --hostname github.com --user "$prev_account" >/dev/null 2>&1
+    # This repo lives under the 21-BreakinCode gh account, which may not be
+    # the active one. `gh auth token -u` fetches its token directly, so the
+    # push authenticates correctly without switching any account state.
+    git -c credential.helper= \
+        -c credential.helper='!f() { echo username=x-access-token; echo "password=$(gh auth token -u 21-BreakinCode)"; }; f' \
+        push
   )
 }
 

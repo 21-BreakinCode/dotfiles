@@ -62,11 +62,9 @@ if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
   fi
 fi
 
-# Push access: route HTTPS auth for this repo through gh (avoids SSH
-# cross-account issues and macOS Keychain prompts in non-interactive shells).
-if command -v gh &>/dev/null; then
-  git config --local --replace-all credential.helper "!gh auth git-credential"
-else
+# Push access: pushdot supplies its own credential per-push (see dotsync.sh),
+# so it just needs `gh` present and logged into the 21-BreakinCode account.
+if ! command -v gh &>/dev/null; then
   echo "  ! gh CLI not found — install it and run 'gh auth login' before pushdot can push."
 fi
 
