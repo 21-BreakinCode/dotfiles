@@ -4,6 +4,12 @@ set -euo pipefail
 REPO_URL="https://github.com/21-BreakinCode/dotfiles.git"
 REPO_DIR="$HOME/Projects/breakincode/dotfiles"
 
+if ! command -v git &>/dev/null; then
+  echo "  ! git not found. On a brand new Mac, run: xcode-select --install"
+  echo "    Then rerun this script."
+  exit 1
+fi
+
 if [[ ! -d "$REPO_DIR/.git" ]]; then
   echo "Cloning dotfiles repo..."
   git clone "$REPO_URL" "$REPO_DIR"
@@ -48,7 +54,12 @@ if ! command -v herdr &>/dev/null; then
   fi
 fi
 if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
-  npx -y skills add herdrdev/herdr --skill herdr -g
+  if command -v npx &>/dev/null; then
+    npx -y skills add herdrdev/herdr --skill herdr -g
+  else
+    echo "  ! npx not found (Node.js missing) — skipping herdr skill install."
+    echo "    Install Node, then run: npx -y skills add herdrdev/herdr --skill herdr -g"
+  fi
 fi
 
 # Push access: route HTTPS auth for this repo through gh (avoids SSH
