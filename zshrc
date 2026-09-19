@@ -1,0 +1,178 @@
+# === Shell-init cache ===
+# Pre-renders each tool's shell-init output to a file, so subsequent shells
+# can `source` it instead of forking a subshell. Auto-invalidates when the
+# binary is newer than the cache. Manual reset: `rm -rf ~/.cache/zsh`
+_zcache_eval() {
+  local name=$1 binary=$2
+  shift 2
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/${name}.zsh"
+  [[ ! -x $binary ]] && return
+  if [[ ! -s $cache || $binary -nt $cache ]]; then
+    [[ -d ${cache:h} ]] || mkdir -p "${cache:h}"
+    "$binary" "$@" > "$cache" 2>/dev/null || { rm -f "$cache"; return }
+  fi
+  source "$cache"
+}
+
+_zcache_eval brew /opt/homebrew/bin/brew shellenv
+
+# Wipe shell-init caches so the next shell rebuilds them from scratch.
+cleanzshcache() {
+  local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+  rm -rf "$cache_dir"
+  rm -f "$HOME"/.zcompdump*
+  echo "Cleared $cache_dir and ~/.zcompdump*. Next shell will rebuild."
+}
+
+typeset -U path PATH  # dedupe PATH entries
+
+# theme
+ZSH_THEME="robbyrussell"
+
+# export MANPATH="/usr/local/man:$MANPATH"
+export HOMEBREW_NO_AUTO_UPDATE=1
+
+export PATH="/opt/homebrew/opt/postgresql@18/bin:$PATH"
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+export PATH=$HOME/go/bin:$PATH
+
+export LIFE_OS_VAULT_PATH="$HOME/Projects/LifeOS"
+export HUMANIZE_TONE_DIR="$HOME/Projects/LifeOS/03Resource/Humanize"
+
+# export PATH="/Applications/cmux.app/Contents/Resources/bin:$PATH"
+
+[ -f "${HOME}/.zsh-custom/env.zsh" ] && source "${HOME}/.zsh-custom/env.zsh"
+[ -f "${HOME}/.zsh-custom/aliases.zsh" ] && source "${HOME}/.zsh-custom/aliases.zsh"
+
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# Completion system — must precede fzf/mise/zoxide cached inits that call compdef
+fpath=($HOME/.docker/completions $fpath)
+autoload -Uz compinit && compinit
+
+_zcache_eval fzf /opt/homebrew/bin/fzf --zsh
+
+# mise: shims dir on PATH for IDEs (no fork) + interactive activation (cached)
+export PATH="$HOME/.local/share/mise/shims:$PATH"
+_zcache_eval mise /opt/homebrew/bin/mise activate zsh
+
+_zcache_eval starship /opt/homebrew/bin/starship init zsh
+
+# Which plugins would you like to load?
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+
+plugins=(
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+)
+
+# User configuration
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='nvim'
+# fi
+
+export EDITOR='nvim'
+
+# For not syncing vscode extension in brewfile
+# export HOMEBREW_BUNDLE_DUMP_NO_VSCODE=1
+export TERM=xterm-256color
+
+export ICLOUD_PATH="${HOME}/Library/Mobile\ Documents/com\~apple\~CloudDocs"
+export CUSTOM_ENV_PATH="${HOME}/.zsh-custom/env.zsh"
+export CUSTOM_ALIAS_PATH="${HOME}/.zsh-custom/aliases.zsh"
+export PATH="$HOME/.local/bin:$PATH"
+
+alias vi="nvim"
+alias vim="nvim"
+
+alias envconfig="vim ${CUSTOM_ENV_PATH}"
+alias aliasconfig="vim ${CUSTOM_ALIAS_PATH}"
+alias zshconfig="vim ~/.zshrc"
+
+alias rg="rg --no-ignore -."
+alias bat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
+
+alias ls='lsd --group-directories-first'
+alias la='ls -la'
+
+alias k='kubecolor'
+alias kctx='kubectx'
+alias kns='kubens'
+
+# lazygit
+export XDG_CONFIG_HOME="$HOME/.config"
+alias st="open -a SourceTree"
+
+# To Path
+alias icloud="cd ${ICLOUD_PATH}"
+alias settings="cd ${ICLOUD_PATH}/Settings"
+
+alias claude-sync="${HOME}/.claude/scripts/claude-sync.sh"
+
+# Dotfiles sync (public repo, symlink-based). Provides: pushdot / pulldot
+[ -f "$HOME/Projects/breakincode/dotfiles/dotsync.sh" ] && source "$HOME/Projects/breakincode/dotfiles/dotsync.sh"
+
+# history completion setup
+HISTFILE=$HOME/.zhistory
+SAVEHIST=1000
+HISTSIZE=999
+setopt share_history
+setopt hist_expire_dups_first
+setopt hist_ignore_dups
+setopt hist_verify
+
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+bindkey '^[[Z' end-of-line
+
+# Option + Left/Right word jump — three encodings for compatibility
+bindkey "^[[1;3D" backward-word  # CSI modifier (direct Ghostty)
+bindkey "^[[1;3C" forward-word   # CSI modifier (direct Ghostty)
+bindkey "^[^[[D" backward-word   # Esc-prefix (Herdr/tmux multiplexers)
+bindkey "^[^[[C" forward-word    # Esc-prefix (Herdr/tmux multiplexers)
+bindkey "^[b" backward-word      # Raw meta (classic Emacs / fallback)
+bindkey "^[f" forward-word       # Raw meta (classic Emacs / fallback)
+
+
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /opt/homebrew/bin/vault vault
+
+# Auto-Warpify (guarded to prevent re-bootstrap on re-source)
+if [[ -z "$WARP_BOOTSTRAPPED" && "$-" == *i* ]]; then
+  printf '\eP$f{"hook": "SourcedRcFileForWarp", "value": { "shell": "zsh", "uname": "Darwin", "tmux": false }}\x9c'
+fi
+# zoxide: in Claude Code, init without --cmd cd (cd override causes errors there).
+# Outside Claude Code, override cd. Cached separately per mode.
+if [[ "$CLAUDECODE" == "1" ]]; then
+  _zcache_eval zoxide-claude /opt/homebrew/bin/zoxide init zsh
+else
+  _zcache_eval zoxide-cd /opt/homebrew/bin/zoxide init --cmd cd zsh
+fi
+
+if [[ -n $GHOSTTY_RESOURCES_DIR && -r "$GHOSTTY_RESOURCES_DIR/shell-integration/zsh/ghostty-integration" ]]; then
+    source "$GHOSTTY_RESOURCES_DIR/shell-integration/zsh/ghostty-integration"
+fi
+
+# Load the line editing widget
+autoload -U edit-command-line
+zle -N edit-command-line
+
+# Bind it to Ctrl+X Ctrl+E
+bindkey '^X^E' edit-command-line
+
+# Added by cua-driver-rs installer — see https://github.com/trycua/cua
+export PATH="$HOME/.local/bin:$PATH"
+
+
+# claude code patch 
+export CLAUDE_CODE_FORK_SUBAGENT=0
+

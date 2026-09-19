@@ -1,0 +1,10 @@
+[tools]
+go = "latest"
+golangci-lint = "latest"
+java = "latest"
+node = "latest"
+npm = "latest"
+pnpm = "10.11.0"
+pre-commit = "latest"
+python = "3.14"
+rust = "1.93.0"
