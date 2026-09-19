@@ -1,7 +1,8 @@
 # dotfiles
 
-Personal dotfiles. Repo is the source of truth — `~/.zshrc` etc. are symlinks
-into it, so editing them directly is already "in" git.
+These are personal dotfiles. The repo is the source of truth. Files like
+`~/.zshrc` are symlinks into the repo. If you edit them directly, the change
+is already tracked in git.
 
 ## New machine
 
@@ -9,18 +10,19 @@ into it, so editing them directly is already "in" git.
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/21-BreakinCode/dotfiles/main/bootstrap.sh)"
 ```
 
-Clones this repo to `~/Projects/breakincode/dotfiles`, symlinks everything
-into place, installs herdr, and seeds `~/.zsh-custom/` (never synced — put
-local secrets in `~/.zsh-custom/env.zsh`, it's gitignored by omission).
+This command clones the repo to `~/Projects/breakincode/dotfiles`. It links
+every file into place. It installs herdr. It also creates the folder
+`~/.zsh-custom/`, which the sync process never touches. Put local secrets in
+`~/.zsh-custom/env.zsh`. That file is not tracked in the repo.
 
-If this machine already has its own `.zshrc` etc., they get overwritten —
-that's intentional, not a bug.
+If this machine already has its own `.zshrc` and similar files, the command
+overwrites them. This is intentional. It is not a bug.
 
 ## Every day
 
 ```
-pushdot   # commit + push local edits
-pulldot   # pull latest + re-run bootstrap.sh
+pushdot   # commit and push local edits
+pulldot   # pull the latest version and run bootstrap.sh again
 ```
 
-Both come from `dotsync.sh`, sourced by `.zshrc`.
+The `dotsync.sh` file defines both commands. `.zshrc` sources that file.
