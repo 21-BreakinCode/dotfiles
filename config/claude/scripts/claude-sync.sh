@@ -109,9 +109,10 @@ get_source_sha() {
 }
 
 prompt_optional() {
-	# Per-marketplace yes/no prompt; honors CLAUDE_SYNC_<KEY> env override
+	# Per-item yes/no prompt; honors CLAUDE_SYNC_<KEY> env override
 	# (key uppercased, hyphens → underscores). Returns 0 = yes, 1 = no.
 	local key="$1"
+	local label="${2:-marketplace}"
 	local env_var="CLAUDE_SYNC_$(echo "$key" | tr '[:lower:]-' '[:upper:]_')"
 	local override="${!env_var:-}"
 
@@ -121,7 +122,7 @@ prompt_optional() {
 	# No override — only prompt on a TTY; default to skip otherwise
 	if [[ ! -t 0 ]]; then return 1; fi
 
-	read -r -p "  Sync optional marketplace '${key}'? [y/N] " ans
+	read -r -p "  Sync optional ${label} '${key}'? [y/N] " ans
 	[[ "$ans" =~ ^[yY]$ ]]
 }
 
@@ -183,6 +184,10 @@ generate_hindsight_config() {
 }
 
 install_hindsight() {
+	# Optional, like OPTIONAL_MARKETPLACES. Skip the prompt non-interactively
+	# with CLAUDE_SYNC_HINDSIGHT=y or =n.
+	prompt_optional "hindsight" "tool" || return 0
+
 	# Install hooks if missing
 	if [[ -f "${HINDSIGHT_HOOKS_DIR}/claude-hook.js" ]]; then
 		echo "  hindsight-coding-agents: already installed"
