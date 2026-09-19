@@ -28,15 +28,14 @@ link() {
 }
 
 echo "Linking dotfiles..."
-link "zshrc"                      "~/.zshrc"
-link "ghostty-config"              "~/.config/ghostty/config"
-link "starship.toml"               "~/.config/starship.toml"
-link "mise-config.toml"            "~/.config/mise/config.toml"
-link "tuicr-config.toml"           "~/.config/tuicr/config.toml"
-link "claude/CLAUDE.md"            "~/.claude/CLAUDE.md"
-link "claude/settings.local.json"  "~/.claude/settings.local.json"
-link "claude/rules"                "~/.claude/rules"
-link "claude/scripts"              "~/.claude/scripts"
+link "config/zshrc"                      "~/.zshrc"
+link "config/ghostty-config"              "~/.config/ghostty/config"
+link "config/starship.toml"               "~/.config/starship.toml"
+link "config/mise-config.toml"            "~/.config/mise/config.toml"
+link "config/tuicr-config.toml"           "~/.config/tuicr/config.toml"
+link "config/claude/CLAUDE.md"            "~/.claude/CLAUDE.md"
+link "config/claude/rules"                "~/.claude/rules"
+link "config/claude/scripts"              "~/.claude/scripts"
 
 # .zsh-custom stays local-only — never synced, just seeded so the guarded
 # `source` lines in zshrc have something to find on a fresh machine.
@@ -62,7 +61,7 @@ if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
   fi
 fi
 
-# Push access: pushdot supplies its own credential per-push (see dotsync.sh),
+# Push access: pushdot supplies its own credential per-push (see tools/dotsync.sh),
 # so it just needs `gh` present and logged into the 21-BreakinCode account.
 if ! command -v gh &>/dev/null; then
   echo "  ! gh CLI not found — install it and run 'gh auth login' before pushdot can push."

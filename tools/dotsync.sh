@@ -7,6 +7,7 @@ DOTFILES_REPO="$HOME/Projects/breakincode/dotfiles"
 pushdot() {
   (
     cd "$DOTFILES_REPO" || return 1
+    ./tools/gen-file-map.sh
     git add -A
     git commit -m "sync: $(date +%F)" || echo "Nothing to commit."
 

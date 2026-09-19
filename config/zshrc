@@ -118,7 +118,7 @@ alias settings="cd ${ICLOUD_PATH}/Settings"
 alias claude-sync="${HOME}/.claude/scripts/claude-sync.sh"
 
 # Dotfiles sync (public repo, symlink-based). Provides: pushdot / pulldot
-[ -f "$HOME/Projects/breakincode/dotfiles/dotsync.sh" ] && source "$HOME/Projects/breakincode/dotfiles/dotsync.sh"
+[ -f "$HOME/Projects/breakincode/dotfiles/tools/dotsync.sh" ] && source "$HOME/Projects/breakincode/dotfiles/tools/dotsync.sh"
 
 # history completion setup
 HISTFILE=$HOME/.zhistory
