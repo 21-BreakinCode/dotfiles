@@ -47,15 +47,14 @@ if ! command -v herdr &>/dev/null; then
     echo "  ! Homebrew not found — install from https://brew.sh, then rerun this script for herdr."
   fi
 fi
-if command -v herdr &>/dev/null; then
+if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
   npx -y skills add herdrdev/herdr --skill herdr -g
 fi
 
 # Push access: route HTTPS auth for this repo through gh (avoids SSH
 # cross-account issues and macOS Keychain prompts in non-interactive shells).
 if command -v gh &>/dev/null; then
-  git config --local credential.helper ""
-  git config --local --add credential.helper "!gh auth git-credential"
+  git config --local --replace-all credential.helper "!gh auth git-credential"
 else
   echo "  ! gh CLI not found — install it and run 'gh auth login' before pushdot can push."
 fi
