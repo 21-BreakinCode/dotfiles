@@ -13,3 +13,4 @@ Do not edit it by hand. Run the script again after you change `bootstrap.sh`.
 | `config/claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | `config/claude/rules` | `~/.claude/rules` |
 | `config/claude/scripts` | `~/.claude/scripts` |
+| `config/nvim` | `~/.config/nvim` |

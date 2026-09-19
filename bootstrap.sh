@@ -36,6 +36,7 @@ link "config/tuicr-config.toml"           "~/.config/tuicr/config.toml"
 link "config/claude/CLAUDE.md"            "~/.claude/CLAUDE.md"
 link "config/claude/rules"                "~/.claude/rules"
 link "config/claude/scripts"              "~/.claude/scripts"
+link "config/nvim"                        "~/.config/nvim"
 
 # .zsh-custom stays local-only — never synced, just seeded so the guarded
 # `source` lines in zshrc have something to find on a fresh machine.
