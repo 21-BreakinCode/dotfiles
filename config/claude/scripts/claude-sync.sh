@@ -27,20 +27,15 @@ PLUGINS=(
 	"plugin-dev@claude-plugins-official"
 	"skill-creator@claude-plugins-official"
 	"claude-code-setup@claude-plugins-official"
+	"superpowers@claude-plugins-official"
 	# official: lsp
 	"typescript-lsp@claude-plugins-official"
 	"pyright-lsp@claude-plugins-official"
 	"gopls-lsp@claude-plugins-official"
-	# official: learning (costs extra tokens)
-	"explanatory-output-style@claude-plugins-official"
-	"learning-output-style@claude-plugins-official"
-	# dev tools
-	"chrome-devtools-mcp"
 	# obsidian
 	"obsidian@obsidian-skills"
 	"obsidian-visual-skills"
 	# official: superpowers
-	"superpowers@claude-plugins-official"
 	# workflow (21-BreakinCode)
 	"session-learner@21-breakincode"
 	"autoresearch@21-breakincode"
