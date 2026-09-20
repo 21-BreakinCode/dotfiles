@@ -230,6 +230,8 @@ cask "jordanbaird-ice"
 cask "libreoffice"
 # Speech recognition tool
 cask "macwhisper"
+# Multi-platform web browser
+cask "microsoft-edge"
 # Intercept, modify, replay, save HTTP/S traffic
 cask "mitmproxy"
 # Interactive tool for analyzing MongoDB data
