@@ -2,11 +2,11 @@
 
 ## When to Apply
 
-Every response that involves the codebase MUST use `<FACT>` and `<ASSUME>` tags: code review, architecture questions, "how does X work", requirement analysis, feature feasibility, impact assessment, and comparisons. Mandatory — no exceptions.
+This is mandatory, with no exceptions, for these higher-stakes items: architecture decisions, impact assessment, and PR-blocking code review.
 
 **ALWAYS** provide a one sentence sum up of each aspect to cut too many content which could distract user reading quality.
 
-**When NOT to apply:** Pure implementation (writing code, running commands, creating files). Only apply when the response contains analysis, explanation, or judgment.
+**When NOT to apply:** Pure implementation (writing code, running commands, creating files), quick explanations, "how does X work" questions, and short comparisons. Only apply when the response contains analysis, explanation, or judgment on one of the higher-stakes items above.
 
 ## Tag Definitions
 
@@ -36,31 +36,3 @@ Every response that involves the codebase MUST use `<FACT>` and `<ASSUME>` tags:
 **SUGGEST:** [Concrete next step. Must include at least one of: specific file/function, command to run, measurable criterion, or effort estimate. For decisions: include criteria for each option + what info is missing. Include tradeoff. Omit if no action needed.]
 
 For multi-topic responses, use multiple FACT/ASSUME groups. Each topic gets its own pair.
-
-## Examples
-
-### Flagging a missing test
-
-**FACT:** There are no test files covering src/utils/retry.ts.
-
-**ASSUME:** None — just flagging.
-
-### Spotting a potential issue
-
-**FACT:** The catch block on line 45 of api/handler.ts catches `Exception` (base class) and returns a generic 500.
-
-**ASSUME:** Catching the base exception type masks retryable vs non-retryable errors. This makes production debugging harder — all failures look identical in logs.
-
-**INSIGHT:** The retry middleware in src/middleware/retry.ts checks for specific error types to decide retry behavior. A generic 500 here means the retry middleware never triggers — failures that could self-heal are instead surfaced to users.
-
-**SUGGEST:** Narrow the catch to specific exception types. Map `PaymentError` → 402, `ValidationError` → 400, `TimeoutError` → 504. Let unexpected exceptions propagate to the global error handler.
-
-### Making a decision (comparison)
-
-**FACT:** Current setup: Flake8 3.9 with 8 plugins (bugbear, bandit, comprehensions, simplify, annotations, docstyle, isort, pyupgrade), Black 23.x, isort 5.x. CI lint time: 45s on 12,000 files. 3 config files (.flake8, pyproject.toml [tool.black], pyproject.toml [tool.isort]). Ruff alternative: Single binary, 973 rules covering all 8 current plugins plus 52 additional rule sets. CI lint time on comparable codebases: 1-3s (from published benchmarks). 1 config section ([tool.ruff] in pyproject.toml).
-
-**ASSUME:** The 45s → ~2s CI improvement probably matters most for the pre-commit hook experience (currently slow enough that developers might skip it). The config consolidation reduces maintenance but is a one-time migration cost.
-
-**INSIGHT:** 2 of the 8 current Flake8 plugins (flake8-annotations, flake8-docstyle) have Ruff equivalents with different default configurations. The flake8-annotations plugin enforces return type annotations on all functions; Ruff's ANN rules default to a stricter subset. Migrating without auditing rule-by-rule will silently change enforcement. Estimated audit effort: ~4 hours to map all 47 currently-enabled rule codes to Ruff equivalents and verify behavior parity.
-
-**SUGGEST:** Migrate to Ruff if: (a) CI speed matters (>10s current lint time), (b) no dependency on a niche Flake8 plugin outside Ruff's 60 supported sets, and (c) team can absorb a one-time formatting diff. Stay with current setup if: (a) you depend on flake8-mypy or another unsupported plugin, or (b) the team has <3 months before a major deadline (migration churn is not worth it). Missing info to decide: run `ruff check --select ALL --statistics` on your codebase to see which Ruff rules fire vs. your current Flake8 output — this takes 5 minutes and gives you the concrete diff.
