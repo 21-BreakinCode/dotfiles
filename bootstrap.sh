@@ -65,6 +65,15 @@ if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
   fi
 fi
 
+# Claude plugins — idempotent sync with interactive prompts for optional ones.
+if command -v claude &>/dev/null; then
+  echo "Syncing Claude plugins..."
+  "$REPO_DIR/config/claude/scripts/claude-sync.sh" reinstall
+else
+  echo "  ! claude CLI not found — skipping plugin sync."
+  echo "    Install Claude Code, then run: claude-sync reinstall"
+fi
+
 # Push access: pushdot supplies its own credential per-push (see tools/dotsync.sh),
 # so it just needs `gh` present and logged into the 21-BreakinCode account.
 if ! command -v gh &>/dev/null; then
