@@ -51,6 +51,7 @@ PLUGINS=(
 	"receipts@21-breakincode"
 	"humanize@21-breakincode"
 	"note-visualizer@21-breakincode"
+	"simple-mandarin@21-breakincode"
 	# token optimization
 	"ponytail@ponytail"
 	"token-optimizer@alexgreensh-token-optimizer"
