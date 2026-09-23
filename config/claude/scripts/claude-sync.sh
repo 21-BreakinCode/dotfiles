@@ -54,6 +54,14 @@ PLUGINS=(
 	"simple-english@simple-english"
 )
 
+# Installed, but kept off at user scope. Projects turn them on where needed,
+# e.g. plugin-dev in 21-BreakinCode/cc-plugins (.claude/settings.json).
+USER_SCOPE_OFF_PLUGINS=(
+	"plugin-dev@claude-plugins-official"
+	"skill-creator@claude-plugins-official"
+	"agent-sdk-dev@claude-plugins-official"
+)
+
 # Optional marketplaces — prompted at install/reinstall time.
 # To skip the prompt non-interactively, set env vars to `y` or `n`, e.g.
 #   CLAUDE_SYNC_APPIER=y claude-sync install
@@ -120,6 +128,13 @@ prompt_optional() {
 
 	read -r -p "  Sync optional ${label} '${key}'? [y/N] " ans
 	[[ "$ans" =~ ^[yY]$ ]]
+}
+
+disable_user_scope_off_plugins() {
+	# Runs after every install or update pass, so a sync never turns these back on at user scope.
+	for plugin in "${USER_SCOPE_OFF_PLUGINS[@]}"; do
+		claude plugin disable "$plugin" --scope user 2>/dev/null || true
+	done
 }
 
 install_optional() {
@@ -245,6 +260,7 @@ cmd_install() {
 	done
 
 	install_optional
+	disable_user_scope_off_plugins
 	install_hindsight
 
 	echo ""
@@ -305,6 +321,7 @@ cmd_reinstall() {
 	done
 
 	install_optional
+	disable_user_scope_off_plugins
 	install_hindsight
 
 	echo ""
@@ -347,6 +364,8 @@ cmd_update() {
 			fi
 		done
 	done
+
+	disable_user_scope_off_plugins
 
 	echo ""
 	echo "Updated ${updated} plugin(s). ${failed} skipped (not installed or already current)."
