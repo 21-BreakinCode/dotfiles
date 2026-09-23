@@ -6,7 +6,7 @@ DOTFILES_REPO="$HOME/Projects/breakincode/dotfiles"
 
 pushdot() {
   (
-    cd "$DOTFILES_REPO" || return 1
+    cd "${DOTFILES_REPO:-$HOME/Projects/breakincode/dotfiles}" || return 1
     ./tools/gen-file-map.sh
     git add -A
     git commit -m "sync: $(date +%F)" || echo "Nothing to commit."
@@ -22,14 +22,14 @@ pushdot() {
 
 pulldot() {
   (
-    cd "$DOTFILES_REPO" || return 1
+    cd "${DOTFILES_REPO:-$HOME/Projects/breakincode/dotfiles}" || return 1
     git pull && ./bootstrap.sh
   )
 }
 
 pushbrewfile() {
   (
-    cd "$DOTFILES_REPO" || return 1
+    cd "${DOTFILES_REPO:-$HOME/Projects/breakincode/dotfiles}" || return 1
     brew bundle dump --file=config/Brewfile --force
     git add -A
     git commit -m "sync: Brewfile $(date +%F)" || echo "Nothing to commit."
@@ -42,7 +42,7 @@ pushbrewfile() {
 
 pullbrewfile() {
   (
-    cd "$DOTFILES_REPO" || return 1
+    cd "${DOTFILES_REPO:-$HOME/Projects/breakincode/dotfiles}" || return 1
     git pull && brew bundle install --file=config/Brewfile
   )
 }

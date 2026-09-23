@@ -133,6 +133,10 @@ install_optional() {
 			claude plugin marketplace add "$repo" 2>/dev/null || true
 			for p in $plugins; do
 				claude plugin install "$p" 2>/dev/null || true
+				# Work plugins stay off at user scope; settings.appier-cs.json enables them per work repo.
+				if [[ "$key" == "appier-cc-plugins" ]]; then
+					claude plugin disable "$p" --scope user 2>/dev/null || true
+				fi
 			done
 		fi
 	done

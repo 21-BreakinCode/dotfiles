@@ -27,12 +27,4 @@ This is mandatory, with no exceptions, for these higher-stakes items: architectu
 
 ## Output Format
 
-**FACT:** [Observable evidence — file, line, behavior, metric. Go deep: what specifically, where, how much.]
-
-**ASSUME:** [Your interpretation of why it exists, what the impact is, or what the intent was. Stay humble.]
-
-**INSIGHT:** [Non-obvious connection, risk, gap, or implication. Must pass the "would a senior engineer already know this?" filter. Quantify: count affected files, estimate effort, cite thresholds. Omit if nothing non-obvious to add.]
-
-**SUGGEST:** [Concrete next step. Must include at least one of: specific file/function, command to run, measurable criterion, or effort estimate. For decisions: include criteria for each option + what info is missing. Include tradeoff. Omit if no action needed.]
-
-For multi-topic responses, use multiple FACT/ASSUME groups. Each topic gets its own pair.
+Use **FACT:** → **ASSUME:** → **INSIGHT:** → **SUGGEST:** in that order, as defined above. Omit INSIGHT or SUGGEST when there is nothing to add. For multi-topic responses, use one FACT/ASSUME group per topic.
