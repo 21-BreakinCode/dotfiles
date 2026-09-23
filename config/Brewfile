@@ -199,10 +199,6 @@ cask "arc"
 cask "brave-browser"
 # Screen recording software
 cask "cap"
-# Anthropic's official Claude AI desktop app
-cask "claude"
-# Terminal-based AI coding assistant
-cask "claude-code"
 # Column-oriented database management system
 cask "clickhouse"
 # Ghostty-based terminal with vertical tabs and notifications for AI coding agents
@@ -345,6 +341,7 @@ go "github.com/haya14busa/goplay/cmd/goplay"
 go "golang.org/x/tools/gopls"
 go "github.com/josharian/impl"
 cargo "tauri-cli"
+npm "@anthropic-ai/claude-code"
 npm "@fission-ai/openspec"
 npm "@playwright/cli"
 npm "@yaakapp/cli"
