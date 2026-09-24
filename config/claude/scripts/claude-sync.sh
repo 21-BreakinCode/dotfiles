@@ -6,9 +6,7 @@ set -euo pipefail
 
 MARKETPLACES=(
 	"anthropics/claude-plugins-official"
-	"ChromeDevTools/chrome-devtools-mcp"
 	"kepano/obsidian-skills"
-	"axtonliu/axton-obsidian-visual-skills"
 	"21-BreakinCode/cc-plugins"
 	# token optimization
 	"DietrichGebert/ponytail"
@@ -34,7 +32,6 @@ PLUGINS=(
 	"gopls-lsp@claude-plugins-official"
 	# obsidian
 	"obsidian@obsidian-skills"
-	"obsidian-visual-skills"
 	# official: superpowers
 	# workflow (21-BreakinCode)
 	"session-learner@21-breakincode"
