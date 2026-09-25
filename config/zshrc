@@ -48,7 +48,6 @@ source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Completion system — must precede fzf/mise/zoxide cached inits that call compdef
-fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit && compinit
 
 _zcache_eval fzf /opt/homebrew/bin/fzf --zsh
