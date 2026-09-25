@@ -41,12 +41,6 @@ brew "coreutils"
 brew "cspell"
 # Image format providing lossless and lossy compression for web images
 brew "webp"
-# Pack, ship and run any application as a lightweight container
-brew "docker", link: false
-# Bash, Zsh and Fish completion for Docker
-brew "docker-completion"
-# Isolated development environments using Docker
-brew "docker-compose"
 # Generate documentation for several programming languages
 brew "doxygen"
 # Embeddable SQL OLAP Database Management System
