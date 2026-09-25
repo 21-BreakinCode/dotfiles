@@ -207,8 +207,6 @@ cask "cmux"
 cask "dbeaver-community"
 # Voice and text chat software
 cask "discord"
-# App to build and share containerised applications and microservices
-cask "docker-desktop"
 # Online diagram software
 cask "drawio"
 cask "font-hack-nerd-font"
@@ -234,6 +232,8 @@ cask "monitorcontrol"
 cask "music-decoy"
 # Knowledge base that works on top of a local folder of plain text Markdown files
 cask "obsidian"
+# Replacement for Docker Desktop
+cask "orbstack"
 # Collaboration platform for API development
 cask "postman"
 # Control your tools with a few keystrokes
@@ -270,6 +270,7 @@ mas "WeChat", id: 836500024
 mas "Xnip", id: 1221250572
 vscode "42crunch.vscode-openapi"
 vscode "alefragnani.project-manager"
+vscode "alexgreensh.token-optimizer-statusline"
 vscode "alexkrechik.cucumberautocomplete"
 vscode "anthropic.claude-code"
 vscode "arturock.gitstash"
