@@ -93,23 +93,38 @@ get_installed_sha() {
 	fi
 }
 
-get_source_sha() {
+get_installed_version() {
+	jq -r ".plugins[\"$1\"][0].version // empty" "$INSTALLED_JSON" 2>/dev/null || echo ""
+}
+
+# The version a fresh install would get. Comparing it with the installed version means a
+# plugin reinstalls only when it changed; the marketplace repo HEAD moves on any commit to
+# any plugin in a monorepo, so comparing HEADs reinstalled nearly every plugin each run.
+# Order: marketplace.json version, then the plugin's plugin.json version, then the pinned
+# source sha (url sources), then the marketplace's 12-char HEAD, which is the version
+# Claude Code records for an unversioned plugin.
+get_expected_version() {
 	local plugin_key="$1"
 	local plugin_name="${plugin_key%%@*}"
-	local marketplace="${plugin_key##*@}"
+	local marketplace_dir="${MARKETPLACES_DIR}/${plugin_key##*@}"
+	local manifest="${marketplace_dir}/.claude-plugin/marketplace.json"
+	[[ -f "$manifest" ]] || { echo ""; return; }
 
-	local source_dir=""
-	if [[ "$marketplace" == "local" ]]; then
-		source_dir="${LOCAL_PLUGINS_DIR}/${plugin_name}"
-	else
-		source_dir="${MARKETPLACES_DIR}/${marketplace}"
-	fi
+	local entry version source_path
+	entry=$(jq -c --arg name "$plugin_name" '.plugins[] | select(.name == $name)' "$manifest" 2>/dev/null)
+	[[ -n "$entry" ]] || { echo ""; return; }
 
-	if [[ -d "${source_dir}/.git" ]]; then
-		git -C "$source_dir" rev-parse HEAD 2>/dev/null || echo ""
-	else
-		echo ""
+	version=$(jq -r '.version // empty' <<<"$entry")
+	if [[ -z "$version" ]]; then
+		source_path=$(jq -r 'if (.source | type) == "string" then .source else empty end' <<<"$entry")
+		[[ -n "$source_path" ]] && version=$(jq -r '.version // empty' "${marketplace_dir}/${source_path}/.claude-plugin/plugin.json" 2>/dev/null)
 	fi
+	if [[ -z "$version" ]]; then
+		version=$(jq -r 'if (.source | type) == "object" then (.source.sha // empty) else empty end' <<<"$entry")
+		[[ -n "$version" ]] && { echo "sha:${version}"; return; }
+	fi
+	[[ -z "$version" && -d "${marketplace_dir}/.git" ]] && version=$(git -C "$marketplace_dir" rev-parse --short=12 HEAD 2>/dev/null)
+	echo "$version"
 }
 
 prompt_optional() {
@@ -208,7 +223,8 @@ install_hindsight() {
 		echo "  hindsight-coding-agents: already installed"
 	else
 		echo "  hindsight-coding-agents: installing..."
-		npx @vectorize-io/hindsight-coding-agents install 2>/dev/null || {
+		# --yes: npx otherwise waits on an "Ok to proceed?" prompt the first time.
+		npx --yes @vectorize-io/hindsight-coding-agents install || {
 			echo "  ⚠ hindsight-coding-agents install failed (run manually: npx @vectorize-io/hindsight-coding-agents install)"
 			return 0
 		}
@@ -272,6 +288,7 @@ cmd_reinstall() {
 	echo ""
 
 	# Ensure marketplaces are registered
+	echo "Refreshing ${#MARKETPLACES[@]} marketplaces..."
 	for mp in "${MARKETPLACES[@]}"; do
 		claude plugin marketplace add "$mp" 2>/dev/null || true
 	done
@@ -302,17 +319,22 @@ cmd_reinstall() {
 			continue
 		fi
 
-		local source_sha
-		source_sha=$(get_source_sha "$plugin")
+		local expected_version installed_version
+		expected_version=$(get_expected_version "$plugin")
+		if [[ "$expected_version" == sha:* ]]; then
+			installed_version="sha:${installed_sha}"
+		else
+			installed_version=$(get_installed_version "$plugin")
+		fi
 
-		# Can't determine source SHA — skip (no git repo or jq missing)
-		if [[ -z "$source_sha" ]]; then
+		# Can't determine the expected version — skip (no manifest or jq missing)
+		if [[ -z "$expected_version" ]]; then
 			skipped=$((skipped + 1))
 			continue
 		fi
 
-		if [[ "$installed_sha" != "$source_sha" ]]; then
-			echo "  ~ ${plugin} (${installed_sha:0:8} -> ${source_sha:0:8})"
+		if [[ "$installed_version" != "$expected_version" ]]; then
+			echo "  ~ ${plugin} (${installed_version#sha:} -> ${expected_version#sha:})"
 			claude plugin install "$plugin" 2>/dev/null || true
 			updated=$((updated + 1))
 		else
@@ -325,6 +347,7 @@ cmd_reinstall() {
 	done
 
 	install_optional
+	echo "Turning off user-scope plugins..."
 	disable_user_scope_off_plugins
 	install_hindsight
 
