@@ -335,7 +335,9 @@ cmd_reinstall() {
 
 		if [[ "$installed_version" != "$expected_version" ]]; then
 			echo "  ~ ${plugin} (${installed_version#sha:} -> ${expected_version#sha:})"
-			claude plugin install "$plugin" 2>/dev/null || true
+			# 'install' no-ops on an already-installed plugin ("already installed"),
+			# so a version bump never lands. 'update' is the verb that moves it.
+			claude plugin update "$plugin" 2>/dev/null || true
 			updated=$((updated + 1))
 		else
 			skipped=$((skipped + 1))
