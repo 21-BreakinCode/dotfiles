@@ -6,7 +6,6 @@ set -euo pipefail
 
 MARKETPLACES=(
 	"anthropics/claude-plugins-official"
-	"kepano/obsidian-skills"
 	"21-BreakinCode/cc-plugins"
 	# token optimization
 	"DietrichGebert/ponytail"
@@ -30,8 +29,6 @@ PLUGINS=(
 	"typescript-lsp@claude-plugins-official"
 	"pyright-lsp@claude-plugins-official"
 	"gopls-lsp@claude-plugins-official"
-	# obsidian
-	"obsidian@obsidian-skills"
 	# official: superpowers
 	# workflow (21-BreakinCode)
 	"session-learner@21-breakincode"
@@ -42,13 +39,19 @@ PLUGINS=(
 	"adhd-review@21-breakincode"
 	"receipts@21-breakincode"
 	"humanize@21-breakincode"
-	"note-visualizer@21-breakincode"
+	"obsidian-kit@21-breakincode"
 	"simple-mandarin@21-breakincode"
 	# token optimization
 	"ponytail@ponytail"
 	"token-optimizer@alexgreensh-token-optimizer"
 	# language
 	"simple-english@simple-english"
+)
+
+# Plugins replaced by another one. reinstall uninstalls them if still present.
+RETIRED_PLUGINS=(
+	"note-visualizer@21-breakincode" # replaced by obsidian-kit
+	"obsidian@obsidian-skills"       # absorbed into obsidian-kit
 )
 
 # Installed, but kept off at user scope. Projects turn them on where needed,
@@ -315,6 +318,10 @@ cmd_reinstall() {
 		else
 			skipped=$((skipped + 1))
 		fi
+	done
+
+	for retired in "${RETIRED_PLUGINS[@]}"; do
+		claude plugin uninstall "$retired" &>/dev/null && echo "  - ${retired} (retired)" || true
 	done
 
 	install_optional
