@@ -31,16 +31,12 @@ PLUGINS=(
 	"gopls-lsp@claude-plugins-official"
 	# official: superpowers
 	# workflow (21-BreakinCode)
-	"session-learner@21-breakincode"
 	"autoresearch@21-breakincode"
-	"hh@21-breakincode"
 	"code-reviewer@21-breakincode"
-	"uiux-optimizer@21-breakincode"
 	"adhd-review@21-breakincode"
 	"receipts@21-breakincode"
 	"humanize@21-breakincode"
 	"obsidian-kit@21-breakincode"
-	"simple-mandarin@21-breakincode"
 	# token optimization
 	"ponytail@ponytail"
 	"token-optimizer@alexgreensh-token-optimizer"
@@ -52,6 +48,10 @@ PLUGINS=(
 RETIRED_PLUGINS=(
 	"note-visualizer@21-breakincode" # replaced by obsidian-kit
 	"obsidian@obsidian-skills"       # absorbed into obsidian-kit
+	"session-learner@21-breakincode" # merged into obsidian-kit 2.0.0
+	"hh@21-breakincode"              # merged into obsidian-kit 2.0.0
+	"simple-mandarin@21-breakincode" # merged into obsidian-kit 2.0.0
+	"uiux-optimizer@21-breakincode"  # removed, no replacement
 )
 
 # Installed, but kept off at user scope. Projects turn them on where needed,
