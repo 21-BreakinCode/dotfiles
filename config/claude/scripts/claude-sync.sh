@@ -9,7 +9,6 @@ MARKETPLACES=(
 	"21-BreakinCode/cc-plugins"
 	# token optimization
 	"DietrichGebert/ponytail"
-	"alexgreensh/token-optimizer"
 	# language
 	"AminBlg/SimpleEnglish"
 )
@@ -39,7 +38,6 @@ PLUGINS=(
 	"obsidian-kit@21-breakincode"
 	# token optimization
 	"ponytail@ponytail"
-	"token-optimizer@alexgreensh-token-optimizer"
 	# language
 	"simple-english@simple-english"
 )
