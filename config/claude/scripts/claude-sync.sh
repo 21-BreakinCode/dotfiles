@@ -11,6 +11,8 @@ MARKETPLACES=(
 	"DietrichGebert/ponytail"
 	# language
 	"AminBlg/SimpleEnglish"
+	# diagram
+	"cathrynlavery/diagram-design"
 )
 
 PLUGINS=(
@@ -40,6 +42,8 @@ PLUGINS=(
 	"ponytail@ponytail"
 	# language
 	"simple-english@simple-english"
+	# diagram
+	"diagram-design@diagram-design"
 )
 
 # Plugins replaced by another one. reinstall uninstalls them if still present.
