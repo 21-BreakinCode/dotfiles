@@ -123,6 +123,9 @@ alias claude-sync="${HOME}/.claude/scripts/claude-sync.sh"
 # Dotfiles sync (public repo, symlink-based). Provides: pushdot / pulldot
 [ -f "$HOME/Projects/breakincode/dotfiles/tools/dotsync.sh" ] && source "$HOME/Projects/breakincode/dotfiles/tools/dotsync.sh"
 
+# brew upgrade can delete the Python a venv was built on: list any venv that no longer starts.
+brew() { command brew "$@" || return; [[ $1 != upgrade ]] || "$HOME/Projects/breakincode/dotfiles/tools/pyvenv-doctor.sh"; }
+
 # history completion setup
 HISTFILE=$HOME/.zhistory
 SAVEHIST=1000

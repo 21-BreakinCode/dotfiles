@@ -137,16 +137,10 @@ brew "p7zip"
 brew "parquet-cli"
 # Python dependency management tool
 brew "pipenv"
-# Python package management tool
-brew "poetry"
 # Object-relational database system
 brew "postgresql@18", restart_service: :changed
 # Static type checker for Python
 brew "pyright"
-# Interpreted, interactive, object-oriented programming language
-brew "python@3.11"
-# Interpreted, interactive, object-oriented programming language
-brew "python@3.13"
 # Generic machine emulator and virtualizer
 brew "qemu"
 # Search tool like grep and The Silver Searcher

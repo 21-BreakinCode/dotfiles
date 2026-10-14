@@ -3,6 +3,7 @@
 1. ALWAYS use self-explainable var name to beat many comments in codebase
 2. ALWAYS ask user to approve when mutating object/db
 3. Reply format: adhd-review's reply shape and bold FACT/ASSUME tags win over simple-english's reply-shape rule (no headers, bullets, bold, tables). Keep simple-english's sentence rules.
+4. when using gh cli to merge ALWAYS use `gh pr merge $NUM --merge` merge action. do NOT use squash
 
 ## Mindset
 
