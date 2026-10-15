@@ -5,7 +5,7 @@ background-opacity-cells = true
 background-blur-radius = 14
 
 window-show-tab-bar = auto
-macos-titlebar-style = hidden
+macos-titlebar-style = transparent
 title = " "
 
 font-size = 14
