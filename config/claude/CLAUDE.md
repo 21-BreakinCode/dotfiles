@@ -9,7 +9,6 @@
 
 - When updating document which represent the service status or PRD this kind of thing. ONLY provide latest status without redundant history reason/decision, that should be written down by another file. Only when user ask you to record the history logs/records you can propose to user how you write this additional information.
 - When talking to user, NEVER, talk in symbol or abbreviation like UC1, UC2, S1, ... this kind of thing, always provide full context term info so that user can have fully known the context. (Always assume user only read the last paragraph without walking through with you the full process)
-- When decision options are more than 3, always choose use one by one approval gate to confirm with user.
 
 ## Mindset
 
