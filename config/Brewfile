@@ -1,5 +1,6 @@
 tap "agavra/tap", trusted: { formulae: ["tuicr"] }
 tap "azure/functions"
+tap "gammons/tap"
 tap "hashicorp/tap"
 tap "homebrew-ffmpeg/ffmpeg"
 tap "kamillobinski/thock"
@@ -93,6 +94,8 @@ brew "kubectx"
 brew "lazydocker"
 # Simple terminal UI for git commands
 brew "lazygit"
+# Library to communicate with iOS devices natively
+brew "libimobiledevice"
 # Implementation of the file(1) command
 brew "libmagic"
 # Clone of ls with colorful output, file type icons, and more
@@ -228,12 +231,12 @@ cask "postman"
 cask "raycast"
 # Move and resize windows using keyboard shortcuts or snap areas
 cask "rectangle"
+# A blazingly fast, keyboard-driven Slack TUI
+cask "gammons/tap/slk", trusted: true
 # Graphical client for Git version control
 cask "sourcetree"
 # Desktop client for Telegram messenger
 cask "telegram-desktop"
-# To-do & task list manager
-cask "ticktick"
 # Open-source code editor
 cask "visual-studio-code"
 # Multimedia player
@@ -253,6 +256,7 @@ mas "LINE", id: 539883307
 mas "Screen Cursor", id: 1577211880
 mas "Slack", id: 803453959
 mas "Tailscale", id: 1475387142
+mas "TickTick", id: 966085870
 mas "Video Speed Controller", id: 1588368612
 mas "WeChat", id: 836500024
 mas "Xnip", id: 1221250572
@@ -330,4 +334,5 @@ go "github.com/haya14busa/goplay/cmd/goplay"
 go "golang.org/x/tools/gopls"
 go "github.com/josharian/impl"
 cargo "tauri-cli"
+npm "cf"
 npm "undici"
