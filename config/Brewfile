@@ -30,6 +30,8 @@ brew "bat"
 brew "node"
 # Secure and free password manager for all of your devices
 brew "bitwarden-cli"
+# Resource monitor. C++ version and continuation of bashtop and bpytop
+brew "btop"
 # Core application library for C
 brew "glib"
 # Vector graphics library with cross-device output support
@@ -150,6 +152,8 @@ brew "qemu"
 brew "ripgrep"
 # SOcket CAT: netcat on steroids
 brew "socat"
+# SQLite extension providing 256-bit AES encryption
+brew "sqlcipher"
 # Cross-shell prompt for astronauts
 brew "starship"
 # User interface to the TELNET protocol
@@ -247,6 +251,8 @@ cask "warp"
 cask "wireshark-app"
 # Mind mapping and brainstorming tool
 cask "xmind"
+# Gecko based web browser
+cask "zen"
 mas "Bitwarden", id: 1352778147
 mas "DaVinci Resolve", id: 571213070
 mas "Dropover", id: 1355679052
@@ -259,6 +265,7 @@ mas "Tailscale", id: 1475387142
 mas "TickTick", id: 966085870
 mas "Video Speed Controller", id: 1588368612
 mas "WeChat", id: 836500024
+mas "Xcode", id: 497799835
 mas "Xnip", id: 1221250572
 vscode "42crunch.vscode-openapi"
 vscode "alefragnani.project-manager"
