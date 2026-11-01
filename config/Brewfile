@@ -253,8 +253,6 @@ cask "warp"
 cask "wireshark-app"
 # Mind mapping and brainstorming tool
 cask "xmind"
-# Gecko based web browser
-cask "zen"
 mas "Bitwarden", id: 1352778147
 mas "DaVinci Resolve", id: 571213070
 mas "Dropover", id: 1355679052
@@ -325,6 +323,7 @@ vscode "rimuruchan.vscode-fix-checksums-next"
 vscode "ritwickdey.liveserver"
 vscode "shahilkumar.docxreader"
 vscode "shakram02.bash-beautify"
+vscode "simzhou.audiolens"
 vscode "streetsidesoftware.code-spell-checker"
 vscode "streetsidesoftware.code-spell-checker-cspell-bundled-dictionaries"
 vscode "tamasfe.even-better-toml"
