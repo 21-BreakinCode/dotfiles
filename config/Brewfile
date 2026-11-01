@@ -247,8 +247,6 @@ cask "visual-studio-code"
 cask "vlc"
 # Menu bar toolkit with keep-awake, system monitor and volume mixer
 cask "vorssaint"
-# Rust-based terminal
-cask "warp"
 # Network protocol analyzer
 cask "wireshark-app"
 # Mind mapping and brainstorming tool
