@@ -211,6 +211,8 @@ cask "gcloud-cli"
 cask "ghostty"
 # Web browser
 cask "google-chrome"
+# Chromium-based web browser
+cask "helium-browser"
 # Free and open-source media player
 cask "iina"
 # Menu bar manager
@@ -221,8 +223,6 @@ cask "macwhisper"
 cask "mitmproxy"
 # Interactive tool for analyzing MongoDB data
 cask "mongodb-compass"
-# Tool to control external monitor brightness & volume
-cask "monitorcontrol"
 # Music app blocker utility
 cask "music-decoy"
 # Knowledge base that works on top of a local folder of plain text Markdown files
@@ -245,6 +245,8 @@ cask "telegram-desktop"
 cask "visual-studio-code"
 # Multimedia player
 cask "vlc"
+# Menu bar toolkit with keep-awake, system monitor and volume mixer
+cask "vorssaint"
 # Rust-based terminal
 cask "warp"
 # Network protocol analyzer
@@ -341,5 +343,7 @@ go "github.com/haya14busa/goplay/cmd/goplay"
 go "golang.org/x/tools/gopls"
 go "github.com/josharian/impl"
 cargo "tauri-cli"
+uv "browser-use"
+uv "twitter-cli"
 npm "cf"
 npm "undici"
