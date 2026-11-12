@@ -54,6 +54,10 @@ RETIRED_PLUGINS=(
 	"hh@21-breakincode"              # merged into obsidian-kit 2.0.0
 	"simple-mandarin@21-breakincode" # merged into obsidian-kit 2.0.0
 	"uiux-optimizer@21-breakincode"  # removed, no replacement
+	"cs-k8s@appier-cc-plugins"         # merged into cs-ops 1.0.0
+	"appier-jenkins@appier-cc-plugins" # merged into cs-ops 1.0.0
+	"idash-db@appier-cc-plugins"       # merged into cs-ops 1.0.0
+	"qa@appier-cc-plugins"             # renamed to cs-qa 1.0.0
 )
 
 # Installed, but kept off at user scope. Projects turn them on where needed,
@@ -69,7 +73,7 @@ USER_SCOPE_OFF_PLUGINS=(
 #   CLAUDE_SYNC_APPIER=y claude-sync install
 OPTIONAL_MARKETPLACES=(
 	# key|github-repo|plugins (space-separated)
-	"appier-cc-plugins|william-hung-appier/appier-cc-plugins|cs-jira@appier-cc-plugins cs-k8s@appier-cc-plugins cs-ops@appier-cc-plugins appier-jenkins@appier-cc-plugins idash-db@appier-cc-plugins qa@appier-cc-plugins"
+	"appier-cc-plugins|william-hung-appier/appier-cc-plugins|cs-jira@appier-cc-plugins cs-ops@appier-cc-plugins cs-qa@appier-cc-plugins"
 	"cs-ads-insight|william-hung-appier/cs-ads-insight|cs-ads-insight@cs-ads-insight"
 )
 
