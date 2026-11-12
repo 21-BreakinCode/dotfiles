@@ -115,11 +115,23 @@ file. Add it by hand, once per machine, as a key inside `~/.claude/settings.json
 `~/.claude/scripts/statusline.sh` is already synced by this repo, so only the JSON key
 above needs adding by hand.
 
+## Appier Claude files
+
+The Appier Claude Code files live in the private repository `william-hung-appier/claude-appier-config`, not in this public repository. The `README.md` of that repository lists its files.
+
+- `pushdot` also pulls that clone, runs `links.sh scan`, then commits and pushes it. If the clone is missing, `pushdot` skips this step.
+- Over HTTPS, git uses the token of the `william-hung-appier` gh account. If `~/.gitconfig` rewrites GitHub URLs to SSH, git uses your SSH key.
+- If your uncommitted edits in the clone conflict with the remote, `pushdot` and `pulldot` stop and print the fix.
+- After bootstrap.sh, `pulldot` asks `Also sync Appier Claude config? [Y/n]`. If you answer Y, it clones or pulls that repository, then runs `links.sh apply`.
+- On a computer without Appier work, answer n.
+
+On a new computer, log in to gh as `william-hung-appier`, then run `pulldot` and answer Y. After you clone the Appier projects, run `pulldot` again to link them.
+
 ## Every day
 
 ```bash
-pushdot        # rebuild FILE_MAP.md, commit, and push local edits
-pulldot        # pull the latest version and run bootstrap.sh again
+pushdot        # rebuild FILE_MAP.md, commit, and push local edits, then the Appier Claude files
+pulldot        # pull the latest version, run bootstrap.sh again, then ask about the Appier Claude files
 pushbrewfile   # dump installed packages to config/Brewfile, commit, and push
 pullbrewfile   # pull the latest version and install packages from config/Brewfile
 ```
