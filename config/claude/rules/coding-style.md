@@ -23,6 +23,10 @@ ALWAYS handle errors comprehensively:
 - Log detailed error context on the server side
 - Never silently swallow errors
 
+## Code Simplification
+
+- If an update extract a function but is ONLY reference by one function then we view this as invalid function which should be flatten inside in the reference function unless really have a good reason for extracting out for that.
+
 ## Input Validation
 
 ALWAYS validate at system boundaries:
