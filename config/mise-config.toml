@@ -1,10 +1,11 @@
 [tools]
 go = "latest"
 java = "latest"
-node = "25.1.0"
+node = "26"
 npm = "latest"
 "npm:@fission-ai/openspec" = "1.1.1"
-"npm:@playwright/cli" = "0.1.1"
+"npm:@playwright/cli" = "0.1.24"
+"npm:cf" = "1.0.0-rc.1"
 "npm:defuddle" = "0.14.0"
 "npm:obsidian-headless" = "0.0.14"
 pnpm = "10.11.0"
