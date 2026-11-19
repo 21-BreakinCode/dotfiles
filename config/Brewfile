@@ -72,7 +72,6 @@ brew "gnu-time"
 # GNU Privacy Guard (OpenPGP)
 brew "gnupg"
 # Open source programming language to build simple/reliable/efficient software
-brew "go"
 # CLI for Drive, Gmail, Calendar, Sheets, Docs, Chat, Admin, and more
 brew "googleworkspace-cli"
 # GNU grep, egrep and fgrep
@@ -136,7 +135,6 @@ brew "neovim"
 # Small build system for use with gyp or CMake
 brew "ninja"
 # Development kit for the Java programming language
-brew "openjdk"
 # Development kit for the Java programming language
 brew "openjdk@21"
 # 7-Zip (high compression file archiver) implementation
@@ -154,7 +152,6 @@ brew "qemu"
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
 # Safe, concurrent, practical language
-brew "rust"
 # SOcket CAT: netcat on steroids
 brew "socat"
 # SQLite extension providing 256-bit AES encryption
@@ -170,7 +167,6 @@ brew "tree-sitter-cli"
 # Language Server Protocol implementation for TypeScript wrapping tsserver
 brew "typescript-language-server"
 # Extremely fast Python package installer and resolver, written in Rust
-brew "uv"
 # Image processing library
 brew "vips"
 # Internet file retriever
