@@ -1,0 +1,5 @@
+[user]
+	name = william
+	email = william31525@gmail.com
+[core]
+	sshCommand = ssh -i ~/.ssh/github-breakin-code -o IdentitiesOnly=yes

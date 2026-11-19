@@ -14,3 +14,7 @@ Do not edit it by hand. Run the script again after you change `bootstrap.sh`.
 | `config/claude/rules` | `~/.claude/rules` |
 | `config/claude/scripts` | `~/.claude/scripts` |
 | `config/nvim` | `~/.config/nvim` |
+| `config/gitconfig` | `~/.gitconfig` |
+| `config/gitconfig-breakincode` | `~/.gitconfig-breakincode` |
+| `config/gitignore_global` | `~/.gitignore_global` |
+| `config/ssh-config` | `~/.ssh/config` |

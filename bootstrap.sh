@@ -37,6 +37,20 @@ link "config/claude/CLAUDE.md"            "~/.claude/CLAUDE.md"
 link "config/claude/rules"                "~/.claude/rules"
 link "config/claude/scripts"              "~/.claude/scripts"
 link "config/nvim"                        "~/.config/nvim"
+link "config/gitconfig"                   "~/.gitconfig"
+link "config/gitconfig-breakincode"       "~/.gitconfig-breakincode"
+link "config/gitignore_global"            "~/.gitignore_global"
+link "config/ssh-config"                  "~/.ssh/config"
+
+# Claude Code rewrites ~/.claude/settings.json itself, so merge the synced keys
+# into it instead of linking it. Keys from the repo file win; the rest stay.
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+CLAUDE_SETTINGS_BASE="$REPO_DIR/config/claude/settings.base.json"
+mkdir -p "$(dirname "$CLAUDE_SETTINGS")"
+[[ -s "$CLAUDE_SETTINGS" ]] || echo '{}' > "$CLAUDE_SETTINGS"
+merged_settings="$(jq -s '.[0] * .[1]' "$CLAUDE_SETTINGS" "$CLAUDE_SETTINGS_BASE")"
+printf '%s\n' "$merged_settings" > "$CLAUDE_SETTINGS"
+echo "  merged config/claude/settings.base.json into ~/.claude/settings.json"
 
 # .zsh-custom stays local-only — never synced, just seeded so the guarded
 # `source` lines in zshrc have something to find on a fresh machine.

@@ -99,21 +99,10 @@ The command does not install packages from `config/Brewfile`. Run `pullbrewfile`
 
 ## Claude Code statusline
 
-Claude Code reads `~/.claude/settings.json` for user-level config. It never reads a
-user-level `settings.local.json`. That filename only means something inside a
-project's own `.claude/` folder. So the statusline command cannot sync as a symlinked
-file. Add it by hand, once per machine, as a key inside `~/.claude/settings.json`:
-
-```json
-"statusLine": {
-  "type": "command",
-  "command": "~/.claude/scripts/statusline.sh",
-  "padding": 0
-}
-```
-
-`~/.claude/scripts/statusline.sh` is already synced by this repo, so only the JSON key
-above needs adding by hand.
+Claude Code writes to `~/.claude/settings.json` itself, so this repo does not link it.
+`bootstrap.sh` merges `config/claude/settings.base.json` into it with `jq` instead.
+Keys from the repo file win, and every other key stays. The repo file holds only the
+`statusLine` key, which runs `~/.claude/scripts/statusline.sh`.
 
 ## Appier Claude files
 

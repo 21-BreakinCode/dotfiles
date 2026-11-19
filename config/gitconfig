@@ -1,0 +1,9 @@
+# No global identity on purpose: a repo outside these folders refuses to commit
+# instead of guessing an author.
+[core]
+	excludesFile = ~/.gitignore_global
+[includeIf "gitdir:~/Projects/Appier/"]
+	# Lives in the private Appier config repo so the work email stays out of this public repo.
+	path = ~/Projects/Appier/william-hung-appier/claude-appier-config/gitconfig-appier
+[includeIf "gitdir:~/Projects/breakincode/"]
+	path = ~/.gitconfig-breakincode
