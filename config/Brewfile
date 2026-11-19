@@ -1,5 +1,6 @@
 tap "agavra/tap", trusted: { formulae: ["tuicr"] }
 tap "azure/functions"
+tap "driceroland/tap"
 tap "gammons/tap"
 tap "hashicorp/tap"
 tap "homebrew-ffmpeg/ffmpeg"
@@ -70,6 +71,8 @@ brew "git-delta"
 brew "gnu-time"
 # GNU Privacy Guard (OpenPGP)
 brew "gnupg"
+# Open source programming language to build simple/reliable/efficient software
+brew "go"
 # CLI for Drive, Gmail, Calendar, Sheets, Docs, Chat, Admin, and more
 brew "googleworkspace-cli"
 # GNU grep, egrep and fgrep
@@ -150,6 +153,8 @@ brew "pyright"
 brew "qemu"
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Safe, concurrent, practical language
+brew "rust"
 # SOcket CAT: netcat on steroids
 brew "socat"
 # SQLite extension providing 256-bit AES encryption
@@ -196,8 +201,6 @@ cask "brave-browser"
 cask "cap"
 # Column-oriented database management system
 cask "clickhouse"
-# Ghostty-based terminal with vertical tabs and notifications for AI coding agents
-cask "cmux"
 # Universal database tool and SQL client
 cask "dbeaver-community"
 # Voice and text chat software
@@ -235,6 +238,8 @@ cask "postman"
 cask "raycast"
 # Move and resize windows using keyboard shortcuts or snap areas
 cask "rectangle"
+# Browser with nothing in the way
+cask "driceroland/tap/search", trusted: true
 # A blazingly fast, keyboard-driven Slack TUI
 cask "gammons/tap/slk", trusted: true
 # Graphical client for Git version control
@@ -255,8 +260,12 @@ mas "Bitwarden", id: 1352778147
 mas "DaVinci Resolve", id: 571213070
 mas "Dropover", id: 1355679052
 mas "Focus To-Do", id: 1258530160
-mas "Keynote", id: 409183694
+mas "GarageBand", id: 682658836
+mas "iMovie", id: 408981434
+mas "Keynote", id: 361285480
 mas "LINE", id: 539883307
+mas "Numbers", id: 361304891
+mas "Pages", id: 361309726
 mas "Screen Cursor", id: 1577211880
 mas "Slack", id: 803453959
 mas "Tailscale", id: 1475387142
@@ -334,8 +343,6 @@ vscode "wholroyd.jinja"
 vscode "zarifprogrammer.tailwind-snippets"
 vscode "zeshuaro.vscode-python-poetry"
 go "github.com/go-delve/delve/cmd/dlv"
-go "cmd/go"
-go "cmd/gofmt"
 go "github.com/haya14busa/goplay/cmd/goplay"
 go "golang.org/x/tools/gopls"
 go "github.com/josharian/impl"
