@@ -71,7 +71,6 @@ brew "git-delta"
 brew "gnu-time"
 # GNU Privacy Guard (OpenPGP)
 brew "gnupg"
-# Open source programming language to build simple/reliable/efficient software
 # CLI for Drive, Gmail, Calendar, Sheets, Docs, Chat, Admin, and more
 brew "googleworkspace-cli"
 # GNU grep, egrep and fgrep
@@ -135,7 +134,6 @@ brew "neovim"
 # Small build system for use with gyp or CMake
 brew "ninja"
 # Development kit for the Java programming language
-# Development kit for the Java programming language
 brew "openjdk@21"
 # 7-Zip (high compression file archiver) implementation
 brew "p7zip"
@@ -151,7 +149,6 @@ brew "pyright"
 brew "qemu"
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
-# Safe, concurrent, practical language
 # SOcket CAT: netcat on steroids
 brew "socat"
 # SQLite extension providing 256-bit AES encryption
@@ -166,7 +163,6 @@ brew "tmux"
 brew "tree-sitter-cli"
 # Language Server Protocol implementation for TypeScript wrapping tsserver
 brew "typescript-language-server"
-# Extremely fast Python package installer and resolver, written in Rust
 # Image processing library
 brew "vips"
 # Internet file retriever
@@ -255,13 +251,8 @@ cask "xmind"
 mas "Bitwarden", id: 1352778147
 mas "DaVinci Resolve", id: 571213070
 mas "Dropover", id: 1355679052
-mas "Focus To-Do", id: 1258530160
-mas "GarageBand", id: 682658836
-mas "iMovie", id: 408981434
 mas "Keynote", id: 361285480
 mas "LINE", id: 539883307
-mas "Numbers", id: 361304891
-mas "Pages", id: 361309726
 mas "Screen Cursor", id: 1577211880
 mas "Slack", id: 803453959
 mas "Tailscale", id: 1475387142
@@ -339,11 +330,11 @@ vscode "wholroyd.jinja"
 vscode "zarifprogrammer.tailwind-snippets"
 vscode "zeshuaro.vscode-python-poetry"
 go "github.com/go-delve/delve/cmd/dlv"
+go "cmd/go"
+go "cmd/gofmt"
 go "github.com/haya14busa/goplay/cmd/goplay"
 go "golang.org/x/tools/gopls"
 go "github.com/josharian/impl"
 cargo "tauri-cli"
 uv "browser-use"
 uv "twitter-cli"
-npm "cf"
-npm "undici"
