@@ -73,8 +73,11 @@ dotfiles:
    │                             │                                  │
 ```
 
-Pushbrewfile runs `brew bundle dump`, then add, commit, and push. Pullbrewfile runs git
-pull, then `brew bundle install` to match `config/Brewfile`.
+Pushbrewfile merges this Mac's packages into `config/Brewfile`, then adds, commits, and
+pushes. The merge covers formulae, casks, Mac App Store apps, VS Code extensions, and go,
+cargo, uv, and npm packages. It never removes a line, so a Mac without some app keeps that
+app in the file. To stop syncing a package, delete its line by hand. Pullbrewfile runs git
+pull, `brew bundle install`, then `mise install` for the tools in `config/mise-config.toml`.
 
 ## New machine
 
@@ -121,8 +124,8 @@ On a new computer, log in to gh as `william-hung-appier`, then run `pulldot` and
 ```bash
 pushdot        # rebuild FILE_MAP.md, commit, and push local edits, then the Appier Claude files
 pulldot        # pull the latest version, run bootstrap.sh again, then ask about the Appier Claude files
-pushbrewfile   # dump installed packages to config/Brewfile, commit, and push
-pullbrewfile   # pull the latest version and install packages from config/Brewfile
+pushbrewfile   # merge installed packages into config/Brewfile, commit, and push
+pullbrewfile   # pull, install packages from config/Brewfile, then run mise install
 ```
 
 The file `tools/dotsync.sh` defines these commands. `.zshrc` sources that file.

@@ -81,10 +81,33 @@ pulldot() {
   "$APPIER_CONFIG_DIR/links.sh" apply
 }
 
+# Merge this Mac's packages into config/Brewfile. Entries other Macs added stay, so a Mac
+# that lacks an app never removes it. To stop syncing a package, delete its line by hand.
+# Dumped entries win on the same type and name. `go "cmd/..."` lines are mise's own go
+# binaries, not packages. Taps sort first, because formulae need their tap installed.
+_merge_brewfile() {
+  local dumped_brewfile merged_brewfile
+  dumped_brewfile="$(mktemp)" merged_brewfile="$(mktemp)"
+  brew bundle dump --file="$dumped_brewfile" --force --no-describe \
+    --mas --vscode --go --cargo --uv --npm || return 1
+  awk '
+    /^[[:space:]]*(#|$)/ || /^go "cmd\// { next }
+    { match($0, /"[^"]*"/); key = $1 " " substr($0, RSTART, RLENGTH) }
+    !(key in entry) { entry[key] = $0; type[key] = $1 }
+    END {
+      split("tap brew cask mas vscode go cargo uv npm", type_order, " ")
+      for (i in type_order) rank[type_order[i]] = i
+      for (key in entry) printf "%d\t%s\t%s\n", (type[key] in rank ? rank[type[key]] : 99), key, entry[key]
+    }' "$dumped_brewfile" config/Brewfile \
+    | LC_ALL=C sort -t $'\t' -k1,1n -k2,2 | cut -f3- > "$merged_brewfile"
+  mv "$merged_brewfile" config/Brewfile
+  rm -f "$dumped_brewfile"
+}
+
 pushbrewfile() {
   (
     cd "${DOTFILES_REPO:-$HOME/Projects/breakincode/dotfiles}" || return 1
-    brew bundle dump --file=config/Brewfile --force
+    _merge_brewfile || return 1
     git add -A
     git commit -m "sync: Brewfile $(date +%F)" || echo "Nothing to commit."
 
@@ -97,6 +120,11 @@ pushbrewfile() {
 pullbrewfile() {
   (
     cd "${DOTFILES_REPO:-$HOME/Projects/breakincode/dotfiles}" || return 1
-    git pull && brew bundle install --file=config/Brewfile
+    git pull || return 1
+    # Run mise even when one Brewfile entry fails, such as a Mac App Store app before sign-in.
+    brew bundle install --file=config/Brewfile
+    local brew_status=$?
+    mise install || return 1
+    return $brew_status
   )
 }
