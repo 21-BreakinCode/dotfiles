@@ -3,5 +3,18 @@
     "type": "command",
     "command": "~/.claude/scripts/statusline.sh",
     "padding": 0
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$CLAUDE_PROJECT_DIR/03Resource/symlink/claude/setup-local.sh\"; [ -f \"$f\" ] && [ ! -e \"$CLAUDE_PROJECT_DIR/.claude/settings.json\" ] && bash \"$f\" --hook || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }
