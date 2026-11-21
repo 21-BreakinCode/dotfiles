@@ -10,6 +10,7 @@ Do not edit it by hand. Run the script again after you change `bootstrap.sh`.
 | `config/starship.toml` | `~/.config/starship.toml` |
 | `config/mise-config.toml` | `~/.config/mise/config.toml` |
 | `config/tuicr-config.toml` | `~/.config/tuicr/config.toml` |
+| `config/herdr-config.toml` | `~/.config/herdr/config.toml` |
 | `config/claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | `config/claude/rules` | `~/.claude/rules` |
 | `config/claude/scripts` | `~/.claude/scripts` |
