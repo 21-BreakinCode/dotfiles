@@ -1,5 +1,5 @@
 onboarding = false
 
 [theme]
-name = "terminal" # Other options: "tokyo-night", "gruvbox", "solarized", "terminal", "catppuccin"
+name = "solarized" # Other options: "tokyo-night", "gruvbox", "solarized", "terminal", "catppuccin"
 
