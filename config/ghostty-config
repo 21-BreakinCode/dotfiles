@@ -15,7 +15,7 @@ adjust-cell-height = 15%
 adjust-font-baseline = 10%
 
 window-padding-x = 6
-window-padding-y = 12
+window-padding-y = 10
 window-padding-balance = true
 
 macos-option-as-alt = true
