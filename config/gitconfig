@@ -7,3 +7,9 @@
 	path = ~/Projects/Appier/william-hung-appier/claude-appier-config/gitconfig-appier
 [includeIf "gitdir:~/Projects/breakincode/"]
 	path = ~/.gitconfig-breakincode
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
