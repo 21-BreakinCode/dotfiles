@@ -182,3 +182,16 @@ export PATH="$HOME/.local/bin:$PATH"
 # claude code patch 
 export CLAUDE_CODE_FORK_SUBAGENT=0
 
+
+# gh CLI: use the personal GitHub account under ~/Projects/breakincode, the active gh account elsewhere.
+# Git itself picks the key by folder in gitconfig; gh has one active account, so set GH_TOKEN per folder.
+_gh_account_by_dir() {
+  if [[ "${PWD:l}/" == "${HOME:l}/projects/breakincode/"* ]]; then
+    [[ -n "$_GH_PERSONAL" ]] || { export GH_TOKEN="$(gh auth token --user 21-BreakinCode 2>/dev/null)"; _GH_PERSONAL=1; }
+  elif [[ -n "$_GH_PERSONAL" ]]; then
+    unset GH_TOKEN _GH_PERSONAL
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd _gh_account_by_dir
+_gh_account_by_dir

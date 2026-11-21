@@ -3,3 +3,6 @@
 	email = william31525@gmail.com
 [core]
 	sshCommand = ssh -i ~/.ssh/github-breakin-code -o IdentitiesOnly=yes
+[url "git@github.com:"]
+	# HTTPS remotes go through SSH too, so they use the personal key above, not gh's active account.
+	insteadOf = https://github.com/
