@@ -20,6 +20,3 @@ macos-option-as-alt = true
 
 keybind = cmd+r=prompt_surface_title
 
-
-
-
