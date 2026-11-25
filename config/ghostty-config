@@ -19,4 +19,5 @@ window-padding-balance = true
 macos-option-as-alt = true
 
 keybind = cmd+r=prompt_surface_title
+copy-on-select = clipboard
 
