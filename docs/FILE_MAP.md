@@ -12,6 +12,7 @@ Do not edit it by hand. Run the script again after you change `bootstrap.sh`.
 | `config/tuicr-config.toml` | `~/.config/tuicr/config.toml` |
 | `config/herdr-config.toml` | `~/.config/herdr/config.toml` |
 | `config/herdr-app/settings.json` | `~/.config/herdr-app/settings.json` |
+| `config/herdr-app/keys.json` | `~/.config/herdr-app/keys.json` |
 | `config/herdr-app/themes/gruvbox.json` | `~/.config/herdr-app/themes/gruvbox.json` |
 | `config/claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | `config/claude/rules` | `~/.claude/rules` |
