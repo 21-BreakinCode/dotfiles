@@ -114,7 +114,8 @@ The Appier Claude Code files live in the private repository `william-hung-appier
 - `pushdot` also pulls that clone, runs `links.sh scan`, then commits and pushes it. If the clone is missing, `pushdot` skips this step.
 - Over HTTPS, git uses the token of the `william-hung-appier` gh account. If `~/.gitconfig` rewrites GitHub URLs to SSH, git uses your SSH key.
 - If your uncommitted edits in the clone conflict with the remote, `pushdot` and `pulldot` stop and print the fix.
-- After bootstrap.sh, `pulldot` asks `Also sync Appier Claude config? [Y/n]`. If you answer Y, it clones or pulls that repository, then runs `links.sh apply`.
+- After bootstrap.sh, `pulldot` asks `Also sync Appier Claude config? [Y/n]`. If you answer Y, it clones or pulls that repository, then runs `links.sh apply`. If skillshare is installed, it then runs `skillshare sync`.
+- That repository also holds the skillshare skills, in `skillshare-skills/`. `links.sh apply` links `~/.config/skillshare/skills` to it. This repository holds `config/skillshare/config.yaml` and the herdr `skillshare` mod and layout.
 - On a computer without Appier work, answer n.
 
 On a new computer, log in to gh as `william-hung-appier`, then run `pulldot` and answer Y. After you clone the Appier projects, run `pulldot` again to link them.

@@ -78,7 +78,9 @@ pulldot() {
   else
     _appier_git clone "$APPIER_CONFIG_URL" "$APPIER_CONFIG_DIR" || return 1
   fi
-  "$APPIER_CONFIG_DIR/links.sh" apply
+  "$APPIER_CONFIG_DIR/links.sh" apply || return 1
+  # links.sh linked the skillshare skills folder; sync puts each skill into ~/.claude/skills and ~/.agents/skills.
+  if command -v skillshare >/dev/null; then skillshare sync -g --no-tui; fi
 }
 
 # Merge this Mac's packages into config/Brewfile. Entries other Macs added stay, so a Mac
