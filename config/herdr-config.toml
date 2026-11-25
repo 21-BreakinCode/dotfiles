@@ -1,8 +1,9 @@
 onboarding = false
 
 [theme]
-name = "solarized" # Other options: "tokyo-night", "gruvbox", "solarized", "terminal", "catppuccin"
+name = "gruvbox"
 
+auto_switch = false
 [worktrees]
 directory = "~/Projects/worktrees" # herdr makes <directory>/<repo>/<branch-slug>
 
