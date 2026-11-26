@@ -15,6 +15,7 @@ export class Lists {
     this.spaces.init(props, cx);
     this.agents = new Agents();
     this.agents.init(props, cx);
+    this.agents.prBadge = (a, view, t) => this.spaces.agentPRBadge(a, view, t);
     const saved = localStorage.getItem("lists.tab");
     this.tab = TABS.includes(saved) ? saved : "spaces";
   }

@@ -4,6 +4,7 @@ import { div } from "gpui-kit";
 import { v_flex, h_flex, ScrollHandle } from "gpui-base";
 import {
   spaces,
+  agents,
   machines,
   panes,
   run,
@@ -164,6 +165,12 @@ export class Spaces {
           this.git[prPlaceKey(s.machine, folder)]?.branch,
       };
     });
+    // Each agent's own checkout too: one space can hold agents in different repos.
+    const machineBySpace = new Map(sp.map((s) => [s.id, s.machine]));
+    for (const a of agents()) {
+      const pane = ps.find((p) => p.pane === a.pane);
+      if (pane?.cwd) places.push({ folder: pane.cwd, machine: machineBySpace.get(a.space), branch: pane.branch });
+    }
     if (this.settings.pull_request_status) this.prObserver.refresh(places, cx);
     const due = this.due(now, sp, ps);
     if (due.size) this.refreshGit(due, cx);
@@ -833,15 +840,14 @@ export class Spaces {
   }
 
   // At the right: the checkout's pull request, and ahead/behind on the selected space.
-  gitTail(g, active, t, w) {
-    const pr = w ? this.prBadge(w, t) : null;
+  // The PR shows on each agent's row instead (agentPRBadge).
+  gitTail(g, active, t) {
     return h_flex()
       .flex_none()
       .gap(5)
       .items_center()
       .text_size(TEXT.label)
       .text_color(t.dim)
-      .when(Boolean(pr), (el) => el.child(pr))
       .when(active && g?.ahead > 0, (el) => el.child(Badge(`\u2191${g.ahead}`)))
       .when(active && g?.behind > 0, (el) => el.child(Badge(`\u2193${g.behind}`)));
   }
@@ -908,8 +914,18 @@ export class Spaces {
       .child(status.ready ? `#${pr.number} ✓` : `#${pr.number}`);
   }
 
-  prBadge(w, t, compact = false) {
-    const prs = this.checkoutPRs(w);
+  // The PR of the agent's own pane folder, from the same lookups as the spaces'.
+  agentPRBadge(a, view, t) {
+    if (!this.settings.pull_request_status) return null;
+    const pane = view.allPanes.find((p) => p.pane === a.pane);
+    if (!pane?.cwd) return null;
+    const machine = view.sp.find((s) => s.id === a.space)?.machine;
+    const status = this.prObserver.entries.get(prPlaceKey(machine, pane.cwd));
+    if (status?.branch !== pane.branch) return null;
+    return this.prBadge({ id: a.address }, t, false, status.prs);
+  }
+
+  prBadge(w, t, compact = false, prs = this.checkoutPRs(w)) {
     if (!prs.length) return null;
     const badge = h_flex().gap(5).flex_none().items_center();
     // Keep the sidebar width bounded when a branch targets several base repos.
@@ -1047,7 +1063,7 @@ export class Spaces {
         div().flex_initial().min_w(48).truncate().tooltip(w.name).text_color(t.foreground).child(w.name),
       )
       .child(this.branchName(g, w.name, t))
-      .child(this.gitTail(g, w.active, t, w));
+      .child(this.gitTail(g, w.active, t));
   }
 
   avatar(w, t) {

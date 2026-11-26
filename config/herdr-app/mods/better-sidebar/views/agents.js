@@ -648,6 +648,7 @@ export class Agents {
     const pic = icon(a.program, 16, t.foreground);
     const hovered = this.hovered === a.address;
     const when = this.since(a);
+    const pr = this.prBadge?.(a, view, t);
     // An agent on another machine (`vps/t7`) says which.
     const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
     return h_flex()
@@ -672,6 +673,7 @@ export class Agents {
       .when(Boolean(machine), (el) =>
         el.child(div().text_size(TEXT.badge).text_color(t.dim).child(machine)),
       )
+      .when(Boolean(pr), (el) => el.child(pr))
       .when(subs.length > 0, (el) => el.child(this.foldButton(a, subs, t)))
       .when(hovered, (el) => el.child(this.pinButton(a, t)))
       .when(!hovered && Boolean(when), (el) =>

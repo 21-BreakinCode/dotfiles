@@ -40,7 +40,7 @@ link "config/herdr-app/themes/gruvbox.json" "~/.config/herdr-app/themes/gruvbox.
 link "config/herdr-app/mods/skillshare"   "~/.config/herdr-app/mods/skillshare"
 link "config/herdr-app/layouts/herdr-skillshare.json" "~/.config/herdr-app/layouts/herdr-skillshare.json"
 link "config/herdr-app/layouts/herdr-skillshare.png"  "~/.config/herdr-app/layouts/herdr-skillshare.png"
-for herdr_path in layouts/estro.json layouts/estro-glass.json layouts/herdr-glass.json layouts/herdr-glass.svg \
+for herdr_path in layouts/estro.json layouts/beautify21.json layouts/herdr-glass.json layouts/herdr-glass.svg \
                   themes/herdr-glass.json \
                   mods/better-files mods/better-changes mods/better-sidebar mods/better-tabs mods/better-config \
                   mods/better-search mods/branch-pr mods/branch-jira \
