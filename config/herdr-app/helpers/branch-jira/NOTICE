@@ -1,0 +1,6 @@
+Branch Jira
+Adapted from Branch Issue in Herdr Mods (https://github.com/munza/herdr-mods),
+Copyright 2026 Tawsif Aqib, licensed under the Apache License, Version 2.0.
+
+Changes: Linear and GitHub Issues support was replaced with Jira Cloud (REST API v3).
+Issue updates (status, priority, assignee) and comment replies were removed.

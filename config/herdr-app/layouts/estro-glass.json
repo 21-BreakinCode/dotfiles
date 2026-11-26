@@ -1,0 +1,302 @@
+{
+  "id": "root",
+  "type": "row",
+  "children": [
+    {
+      "id": "sidebar",
+      "type": "column",
+      "children": [
+        {
+          "id": "brand",
+          "type": "block",
+          "content": {
+            "mod": "workspace-chrome"
+          },
+          "size": {
+            "px": 46
+          },
+          "window_drag": true
+        },
+        {
+          "id": "sidebar-lists",
+          "type": "block",
+          "content": {
+            "mod": "better-sidebar",
+            "props": {
+              "view": "lists"
+            }
+          },
+          "min": 90
+        },
+        {
+          "id": "sidebar-footer",
+          "type": "block",
+          "content": {
+            "mod": "better-sidebar",
+            "props": {
+              "view": "footer"
+            }
+          },
+          "size": {
+            "px": 37
+          }
+        }
+      ],
+      "size": {
+        "px": 268
+      },
+      "min": 44,
+      "max": 480,
+      "background": "#21252b99",
+      "resizable": false,
+      "border": {
+        "width": 1,
+        "color": "#ffffff1f"
+      },
+      "radius": 16,
+      "shadow": "lg"
+    },
+    {
+      "id": "work",
+      "type": "column",
+      "children": [
+        {
+          "id": "tabs-row",
+          "type": "row",
+          "size": {
+            "px": 42
+          },
+          "children": [
+            {
+              "id": "tabs",
+              "type": "block",
+              "content": {
+                "mod": "better-tabs",
+                "props": {
+                  "rememberPanels": {
+                    "container": "panel",
+                    "stack": "panel-body"
+                  },
+                  "buttons": [
+                    {
+                      "id": "files",
+                      "label": "Files",
+                      "icon": "file",
+                      "group": "panels",
+                      "action": {
+                        "type": "panel",
+                        "container": "panel",
+                        "stack": "panel-body",
+                        "target": "files"
+                      }
+                    },
+                    {
+                      "id": "changes",
+                      "label": "Changes",
+                      "icon": "changes",
+                      "group": "panels",
+                      "action": {
+                        "type": "panel",
+                        "container": "panel",
+                        "stack": "panel-body",
+                        "target": "changes"
+                      }
+                    },
+                    {
+                      "id": "prs",
+                      "label": "PRs",
+                      "icon": "mods/branch-pr/icons/pull-request.svg",
+                      "group": "panels",
+                      "action": {
+                        "type": "panel",
+                        "container": "panel",
+                        "stack": "panel-body",
+                        "target": "pull-requests"
+                      }
+                    },
+                    {
+                      "id": "issues",
+                      "label": "CS Kanban",
+                      "icon": "mods/branch-jira/icons/issue.svg",
+                      "group": "panels",
+                      "action": {
+                        "type": "panel",
+                        "container": "panel",
+                        "stack": "panel-body",
+                        "target": "jira-issues"
+                      }
+                    }
+                  ]
+                }
+              },
+              "size": {
+                "weight": 1
+              },
+              "window_drag": true
+            },
+            {
+              "id": "panel-toggle",
+              "type": "block",
+              "size": {
+                "px": 36
+              },
+              "content": {
+                "mod": "better-sidebar",
+                "props": {
+                  "view": "panel-toggle"
+                }
+              }
+            }
+          ],
+          "background": "#21252b99",
+          "border": {
+            "width": 1,
+            "color": "#ffffff1f"
+          },
+          "radius": 16,
+          "shadow": "md"
+        },
+        {
+          "id": "work-body",
+          "type": "row",
+          "children": [
+            {
+              "id": "main",
+              "type": "block",
+              "content": {
+                "tab": "active",
+                "pane": {
+                  "gap": 10,
+                  "radius": 16,
+                  "background": "#21252b99",
+                  "lone": true,
+                  "border": {
+                    "width": 1,
+                    "color": "#ffffff14"
+                  },
+                  "focus": {
+                    "width": 1,
+                    "color": "#ffffff2e"
+                  },
+                  "header": {
+                    "content": {
+                      "mod": "better-changes"
+                    },
+                    "reveal": "always",
+                    "height": 30,
+                    "position": "top"
+                  }
+                }
+              }
+            },
+            {
+              "id": "panel",
+              "type": "column",
+              "children": [
+                {
+                  "id": "panel-body",
+                  "type": "stack",
+                  "children": [
+                    {
+                      "id": "files",
+                      "type": "block",
+                      "content": {
+                        "mod": "better-files"
+                      }
+                    },
+                    {
+                      "id": "changes",
+                      "type": "block",
+                      "content": {
+                        "mod": "better-changes"
+                      }
+                    },
+                    {
+                      "id": "pull-requests",
+                      "type": "block",
+                      "content": {
+                        "mod": "branch-pr"
+                      }
+                    },
+                    {
+                      "id": "jira-issues",
+                      "type": "block",
+                      "content": {
+                        "mod": "branch-jira"
+                      }
+                    }
+                  ],
+                  "active": "changes"
+                }
+              ],
+              "size": {
+                "px": 368
+              },
+              "min": 280,
+              "max": 900,
+              "background": "#21252b99",
+              "border": {
+                "width": 1,
+                "color": "#ffffff1f"
+              },
+              "radius": 16,
+              "shadow": "lg"
+            }
+          ],
+          "gap": 10
+        },
+        {
+          "id": "status",
+          "type": "block",
+          "content": {
+            "mod": "herdr-glass-status"
+          },
+          "size": {
+            "px": 30
+          },
+          "background": "#21252b99",
+          "border": {
+            "width": 1,
+            "color": "#ffffff1f"
+          },
+          "radius": 12
+        }
+      ],
+      "resizable": false,
+      "gap": 10
+    }
+  ],
+  "background": "#00000000",
+  "terminal_padding": [
+    14,
+    16
+  ],
+  "titlebar": "none",
+  "traffic_lights": [
+    24,
+    26
+  ],
+  "theme": "herdr-glass",
+  "colors": {
+    "canvas": "#00000000",
+    "chrome": "#00000000",
+    "background": "#282c3400",
+    "surface": "#24272ef7",
+    "raised": "#ffffff1c",
+    "hover": "#ffffff1a",
+    "selected": "#ffffff24",
+    "border": "#ffffff26",
+    "accent": "#81a2be",
+    "foreground": "#d2d4d8",
+    "muted": "#ffffffb3",
+    "dim": "#ffffff80",
+    "done": "#8cc27d",
+    "popover": "#1a1c22eb"
+  },
+  "terminal_opacity": 0,
+  "terminal_line_height": 1.12,
+  "toast": "herdr-glass-toast",
+  "padding": 10,
+  "gap": 10,
+  "window_blur": true
+}

@@ -31,8 +31,8 @@
     "cmd-alt-shift-right": "pane.swap:right",
     "cmd-alt-shift-up": "pane.swap:up",
     "cmd-alt-shift-down": "pane.swap:down",
-    "f2": "tab.rename",
-    "shift-f2": "space.rename",
+    "cmd-r": "tab.rename",
+    "cmd-shift-r": "space.rename",
     "cmd-/": "app.help",
     "cmd-shift-/": "app.help",
     "cmd-\\": "layout.toggle:sidebar",
@@ -58,7 +58,11 @@
     "ctrl-6": "space.select:6",
     "ctrl-7": "space.select:7",
     "ctrl-8": "space.select:8",
-    "ctrl-9": "space.select:9"
+    "ctrl-9": "space.select:9",
+    "cmd-shift-e": "better-files.focus",
+    "cmd-shift-b": "better-sidebar.toggle-panel",
+    "cmd-alt-,": "mod.open:better-config",
+    "cmd-alt-p": "mod.open:better-search"
   },
   "terminal": {
     "cmd-f": "terminal.search",

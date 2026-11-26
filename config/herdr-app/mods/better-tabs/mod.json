@@ -1,0 +1,28 @@
+{
+  "$schema": "./mod.schema.json",
+  "version": "3.3.0",
+  "place": "none",
+  "title": "Better Tabs",
+  "palette": [
+    {
+      "title": "Panel: Files",
+      "command": "better-tabs.button:files",
+      "words": "files tree explorer"
+    },
+    {
+      "title": "Panel: Changes",
+      "command": "better-tabs.button:changes",
+      "words": "changes diff git commit stage"
+    },
+    {
+      "title": "Panel: PRs",
+      "command": "better-tabs.button:prs",
+      "words": "pr prs pull request review github"
+    },
+    {
+      "title": "Panel: CS Kanban",
+      "command": "better-tabs.button:issues",
+      "words": "cs kanban jira issues tickets"
+    }
+  ]
+}

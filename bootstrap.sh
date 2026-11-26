@@ -40,6 +40,14 @@ link "config/herdr-app/themes/gruvbox.json" "~/.config/herdr-app/themes/gruvbox.
 link "config/herdr-app/mods/skillshare"   "~/.config/herdr-app/mods/skillshare"
 link "config/herdr-app/layouts/herdr-skillshare.json" "~/.config/herdr-app/layouts/herdr-skillshare.json"
 link "config/herdr-app/layouts/herdr-skillshare.png"  "~/.config/herdr-app/layouts/herdr-skillshare.png"
+for herdr_path in layouts/estro.json layouts/estro-glass.json layouts/herdr-glass.json layouts/herdr-glass.svg \
+                  themes/herdr-glass.json \
+                  mods/better-files mods/better-changes mods/better-sidebar mods/better-tabs mods/better-config \
+                  mods/better-search mods/branch-pr mods/branch-jira \
+                  mods/herdr-glass-tabs mods/herdr-glass-pane mods/herdr-glass-toast mods/herdr-glass-chrome \
+                  mods/herdr-glass-status mods/herdr-glass-agents mods/herdr-glass-spaces mods/herdr-glass-bg; do
+  link "config/herdr-app/$herdr_path" "~/.config/herdr-app/$herdr_path"
+done
 link "config/skillshare/config.yaml"      "~/.config/skillshare/config.yaml"
 link "config/claude/CLAUDE.md"            "~/.claude/CLAUDE.md"
 link "config/claude/rules"                "~/.claude/rules"
@@ -86,6 +94,19 @@ if command -v herdr &>/dev/null && [[ ! -d "$HOME/.agents/skills/herdr" ]]; then
     echo "    Install Node, then run: npx -y skills add herdrdev/herdr --skill herdr -g"
   fi
 fi
+
+# Herdr mod helpers are per-machine binaries (gitignored), built from config/herdr-app/helpers.
+for helper_build in "branch-pr herdr-pr" "branch-jira herdr-jira"; do
+  read -r helper_mod helper_bin <<< "$helper_build"
+  helper_out="$REPO_DIR/config/herdr-app/mods/$helper_mod/bin/$helper_bin"
+  [[ -x "$helper_out" ]] && continue
+  if command -v go &>/dev/null; then
+    go -C "$REPO_DIR/config/herdr-app/helpers/$helper_mod" build -o "$helper_out" . \
+      && echo "  built $helper_mod helper"
+  else
+    echo "  ! go not found — skipping the $helper_mod helper. Install Go, then rerun bootstrap.sh."
+  fi
+done
 
 # Claude plugins — idempotent sync with interactive prompts for optional ones.
 if command -v claude &>/dev/null; then
