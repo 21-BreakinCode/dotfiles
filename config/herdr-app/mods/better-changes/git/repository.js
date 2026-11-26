@@ -9,6 +9,7 @@ import {
   readBehind,
   readLog,
   readCommitFiles,
+  readWorktrees,
 } from "./reads.js";
 
 // Reads must not take optional index locks or start fsmonitor helpers.
@@ -51,7 +52,18 @@ export const gitMethods = {
         this.source ??
         activeLocation()
       );
-    return this.source ?? activeLocation();
+    if (this.source) return this.source;
+    // A worktree picked in the panel holds until the person moves to another terminal folder.
+    const active = activeLocation();
+    const picked = this.pickedWorktree;
+    if (picked?.base === JSON.stringify(active)) return { cwd: picked.path, on: active.on };
+    return active;
+  },
+
+  pickWorktree(path, cx) {
+    const active = activeLocation();
+    this.pickedWorktree = { base: JSON.stringify(active), path };
+    this.refresh(cx);
   },
 
   // Both folder and machine: the same path on two machines is two repositories.
@@ -121,6 +133,7 @@ export const gitMethods = {
     if (top.code !== 0) {
       this.root = null;
       this.files = [];
+      this.worktrees = [];
       this.error = "Not a Git repository";
       return;
     }
@@ -156,7 +169,9 @@ export const gitMethods = {
   async readSidebarState(git, context, cx) {
     const committed = await readCommitted(git, this.committed, this.settings.limits.files);
     const { branch, repo } = await readBranchAndRepo(git);
+    const worktrees = await readWorktrees(git, (cwd, args) => this.git(args, cwd, this.on));
     if (!this.isCurrent(context)) return;
+    this.worktrees = worktrees;
     this.committed = committed;
     this.branch = branch;
     this.repo = repo;

@@ -143,3 +143,23 @@ export async function readCommitFiles(git, hash) {
   }
   return commitFiles(numstat.stdout, names.stdout);
 }
+
+// Every checkout of the repository, and how many files each one changed.
+export async function readWorktrees(git, gitIn) {
+  const list = await git(["worktree", "list", "--porcelain"]);
+  if (list.code !== 0) return [];
+  const worktrees = list.stdout
+    .split("\n\n")
+    .map((block) => {
+      const path = block.match(/^worktree (.+)$/m)?.[1];
+      const branch = block.match(/^branch refs\/heads\/(.+)$/m)?.[1] ?? "detached";
+      return path && !/^prunable/m.test(block) ? { path, branch } : null;
+    })
+    .filter(Boolean);
+  return Promise.all(
+    worktrees.map(async (w) => {
+      const status = await gitIn(w.path, ["status", "--porcelain", "--untracked-files=all"]);
+      return { ...w, changes: status.code === 0 ? lines(status.stdout).length : 0 };
+    }),
+  );
+}

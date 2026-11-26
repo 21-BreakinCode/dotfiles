@@ -38,9 +38,7 @@ link "config/herdr-app/settings.json"     "~/.config/herdr-app/settings.json"
 link "config/herdr-app/keys.json"         "~/.config/herdr-app/keys.json"
 link "config/herdr-app/themes/gruvbox.json" "~/.config/herdr-app/themes/gruvbox.json"
 link "config/herdr-app/mods/skillshare"   "~/.config/herdr-app/mods/skillshare"
-link "config/herdr-app/layouts/herdr-skillshare.json" "~/.config/herdr-app/layouts/herdr-skillshare.json"
-link "config/herdr-app/layouts/herdr-skillshare.png"  "~/.config/herdr-app/layouts/herdr-skillshare.png"
-for herdr_path in layouts/estro.json layouts/beautify21.json layouts/herdr-glass.json layouts/herdr-glass.svg \
+for herdr_path in layouts/beautify21.json \
                   themes/herdr-glass.json \
                   mods/better-files mods/better-changes mods/better-sidebar mods/better-tabs mods/better-config \
                   mods/better-search mods/branch-pr mods/branch-jira \

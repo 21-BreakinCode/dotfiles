@@ -15,8 +15,6 @@ Do not edit it by hand. Run the script again after you change `bootstrap.sh`.
 | `config/herdr-app/keys.json` | `~/.config/herdr-app/keys.json` |
 | `config/herdr-app/themes/gruvbox.json` | `~/.config/herdr-app/themes/gruvbox.json` |
 | `config/herdr-app/mods/skillshare` | `~/.config/herdr-app/mods/skillshare` |
-| `config/herdr-app/layouts/herdr-skillshare.json` | `~/.config/herdr-app/layouts/herdr-skillshare.json` |
-| `config/herdr-app/layouts/herdr-skillshare.png` | `~/.config/herdr-app/layouts/herdr-skillshare.png` |
 | `config/skillshare/config.yaml` | `~/.config/skillshare/config.yaml` |
 | `config/claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | `config/claude/rules` | `~/.claude/rules` |

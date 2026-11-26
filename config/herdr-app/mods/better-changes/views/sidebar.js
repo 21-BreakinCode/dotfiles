@@ -74,6 +74,7 @@ export const sidebarMethods = {
     if (this.mode === "diff") return this.renderDiff();
     return Panel({ id: "better-changes" })
       .child(this.renderHeader())
+      .child(this.renderWorktrees())
       .child(
         this.tab === "commit"
           ? this.selectedCommit
@@ -123,6 +124,39 @@ export const sidebarMethods = {
         }),
       )
       .child(this.renderMore());
+  },
+
+  // One chip per checkout of the repository, so an agent's worktree shows here too.
+  renderWorktrees() {
+    const t = theme();
+    const worktrees = this.worktrees ?? [];
+    if (worktrees.length < 2) return div();
+    return h_flex()
+      .id("worktrees")
+      .flex_wrap()
+      .gap(4)
+      .px(6)
+      .pb(6)
+      .children(
+        worktrees.map((w) => {
+          const current = w.path === this.root;
+          return h_flex()
+            .id(`worktree-${w.path}`)
+            .px(8)
+            .h(22)
+            .gap(5)
+            .items_center()
+            .rounded(6)
+            .text_size(TEXT.small)
+            .cursor_pointer()
+            .text_color(current ? t.foreground : t.muted)
+            .bg(current ? t.raised : t.background)
+            .hover((s) => s.bg(t.hover))
+            .on_click((_e, cx) => current || this.pickWorktree(w.path, cx))
+            .child(div().truncate().max_w(160).child(w.branch))
+            .when(w.changes > 0, (el) => el.child(div().text_color(t.ansi3).child(String(w.changes))));
+        }),
+      );
   },
 
   refreshAll(cx) {
