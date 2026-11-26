@@ -37,7 +37,6 @@ link "config/herdr-config.toml"           "~/.config/herdr/config.toml"
 link "config/herdr-app/settings.json"     "~/.config/herdr-app/settings.json"
 link "config/herdr-app/keys.json"         "~/.config/herdr-app/keys.json"
 link "config/herdr-app/themes/gruvbox.json" "~/.config/herdr-app/themes/gruvbox.json"
-link "config/herdr-app/mods/skillshare"   "~/.config/herdr-app/mods/skillshare"
 for herdr_path in layouts/beautify21.json \
                   themes/herdr-glass.json \
                   mods/better-files mods/better-changes mods/better-sidebar mods/better-tabs mods/better-config \
@@ -45,6 +44,14 @@ for herdr_path in layouts/beautify21.json \
                   mods/herdr-glass-tabs mods/herdr-glass-pane mods/herdr-glass-toast mods/herdr-glass-chrome \
                   mods/herdr-glass-status mods/herdr-glass-agents mods/herdr-glass-spaces mods/herdr-glass-bg; do
   link "config/herdr-app/$herdr_path" "~/.config/herdr-app/$herdr_path"
+done
+# A file removed from this repo leaves a stale link behind: a broken one, or a mod folder
+# with only Herdr's ignored jsconfig.json and gpui-kit.d.ts left. Drop the ones that point here.
+for stale in "$HOME"/.config/herdr-app/{layouts,mods,themes}/*; do
+  [[ -L "$stale" && "$(readlink "$stale")" == "$REPO_DIR/"* ]] || continue
+  [[ ! -e "$stale" || ( "$stale" == */mods/* && ! -e "$stale/mod.json" ) ]] || continue
+  rm "$stale"
+  echo "  removed stale link $stale"
 done
 link "config/skillshare/config.yaml"      "~/.config/skillshare/config.yaml"
 link "config/claude/CLAUDE.md"            "~/.claude/CLAUDE.md"
