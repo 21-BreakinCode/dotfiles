@@ -178,90 +178,6 @@ install_optional() {
 	done
 }
 
-# ── Non-Marketplace Tools ────────────────────────────────────────
-# Tools installed outside the Claude plugin marketplace.
-
-HINDSIGHT_HOOKS_DIR="${HOME}/.hindsight/coding-agents/dist"
-HINDSIGHT_CONFIG="${HOME}/.hindsight/coding-agent.json"
-HINDSIGHT_BANKS="${CLAUDE_DIR}/configs/hindsight-banks.json"
-
-# Reads hindsight-banks.json (relative paths) and generates coding-agent.json (absolute paths).
-# To add a bank: edit ~/.claude/configs/hindsight-banks.json, then run claude-sync reinstall.
-generate_hindsight_config() {
-	if [[ ! -f "$HINDSIGHT_BANKS" ]]; then
-		echo "  ⚠ hindsight: ${HINDSIGHT_BANKS} not found — skip config" >&2
-		return 1
-	fi
-	if ! command -v jq &>/dev/null; then
-		echo "  ⚠ hindsight: jq required to generate config" >&2
-		return 1
-	fi
-
-	local serverMode apiUrl defaultBank optInOnly
-	serverMode=$(jq -r '.serverMode' "$HINDSIGHT_BANKS")
-	apiUrl=$(jq -r '.apiUrl' "$HINDSIGHT_BANKS")
-	defaultBank=$(jq -r '.defaultBank' "$HINDSIGHT_BANKS")
-	optInOnly=$(jq -r '.optInOnly // false' "$HINDSIGHT_BANKS")
-
-	# Build mapPathToBank by expanding relative paths to $HOME
-	local mapJson
-	mapJson=$(jq -r '
-		[.banks | to_entries[] | .key as $bank | .value[] | {("\(.)"): $bank}]
-		| add // {}
-	' "$HINDSIGHT_BANKS" | sed "s|\"Projects/|\"${HOME}/Projects/|g")
-
-	jq -n \
-		--arg sm "$serverMode" \
-		--arg url "$apiUrl" \
-		--arg bank "$defaultBank" \
-		--argjson oi "$optInOnly" \
-		--argjson map "$mapJson" \
-		'{serverMode: $sm, apiUrl: $url, bankId: $bank, optInOnly: $oi, mapPathToBank: $map}'
-}
-
-install_hindsight() {
-	# Optional, like OPTIONAL_MARKETPLACES. Skip the prompt non-interactively
-	# with CLAUDE_SYNC_HINDSIGHT=y or =n.
-	prompt_optional "hindsight" "tool" || return 0
-
-	# Install hooks if missing
-	if [[ -f "${HINDSIGHT_HOOKS_DIR}/claude-hook.js" ]]; then
-		echo "  hindsight-coding-agents: already installed"
-	else
-		echo "  hindsight-coding-agents: installing..."
-		# --yes: npx otherwise waits on an "Ok to proceed?" prompt the first time.
-		npx --yes @vectorize-io/hindsight-coding-agents install || {
-			echo "  ⚠ hindsight-coding-agents install failed (run manually: npx @vectorize-io/hindsight-coding-agents install)"
-			return 0
-		}
-	fi
-
-	# Deploy bank config if missing bankId or config absent
-	local needsDeploy=false
-	if [[ ! -f "$HINDSIGHT_CONFIG" ]]; then
-		needsDeploy=true
-	elif command -v jq &>/dev/null; then
-		local currentBankId
-		currentBankId=$(jq -r '.bankId // empty' "$HINDSIGHT_CONFIG" 2>/dev/null)
-		[[ -z "$currentBankId" ]] && needsDeploy=true
-	fi
-
-	if [[ "$needsDeploy" == true ]]; then
-		mkdir -p "$(dirname "$HINDSIGHT_CONFIG")"
-		if generate_hindsight_config > "$HINDSIGHT_CONFIG"; then
-			echo "  hindsight: deployed bank config from hindsight-banks.json"
-		fi
-	fi
-}
-
-# Force-deploy bank config from hindsight-banks.json (for sync-banks command).
-sync_hindsight_banks() {
-	mkdir -p "$(dirname "$HINDSIGHT_CONFIG")"
-	if generate_hindsight_config > "$HINDSIGHT_CONFIG"; then
-		echo "  hindsight: synced bank config from hindsight-banks.json"
-	fi
-}
-
 # ── Commands ─────────────────────────────────────────────────────
 
 cmd_install() {
@@ -283,7 +199,6 @@ cmd_install() {
 
 	install_optional
 	disable_user_scope_off_plugins
-	install_hindsight
 
 	echo ""
 	echo "Done. ${installed} plugins processed."
@@ -357,7 +272,6 @@ cmd_reinstall() {
 	install_optional
 	echo "Turning off user-scope plugins..."
 	disable_user_scope_off_plugins
-	install_hindsight
 
 	echo ""
 	if [[ $updated -eq 0 ]]; then
@@ -417,15 +331,6 @@ cmd_remove() {
 	claude plugin uninstall "$plugin"
 }
 
-cmd_sync_banks() {
-	echo "Syncing Hindsight bank config from ${HINDSIGHT_BANKS}..."
-	sync_hindsight_banks
-	echo ""
-	echo "Deployed to ${HINDSIGHT_CONFIG}"
-	echo "Banks:"
-	jq -r '.banks | to_entries[] | "  \(.key): \(.value | length) dir(s)"' "$HINDSIGHT_BANKS" 2>/dev/null
-}
-
 cmd_help() {
 	echo "Usage: claude-sync <command> [args]"
 	echo ""
@@ -433,7 +338,6 @@ cmd_help() {
 	echo "  install     Install all plugins (idempotent)"
 	echo "  reinstall   Only reinstall plugins with source changes"
 	echo "  update      Update all plugins via 'claude plugin update'"
-	echo "  sync-banks  Deploy Hindsight bank config from hindsight-banks.json"
 	echo "  remove      Remove a plugin (claude-sync remove <name>)"
 	echo "  help        Show this help"
 }
@@ -448,7 +352,6 @@ main() {
 	install) cmd_install ;;
 	reinstall) cmd_reinstall ;;
 	update) cmd_update ;;
-	sync-banks) cmd_sync_banks ;;
 	remove) cmd_remove "$@" ;;
 	help | *) cmd_help ;;
 	esac
