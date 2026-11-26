@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # wt: the only code that decides where git worktrees live.
-# Usage: wt path <branch> | new <branch> | prune [--auto] [repo] | prune --confirm|--keep <path> | hook-create | hook-remove | hook-session-end
+# Usage: wt path <branch> | new <branch> | prune [--auto] [repo] | prune --confirm|--keep <path> | hook-create | hook-remove | hook-exit-worktree | hook-session-end
 # Hooks read Claude Code's JSON on stdin.
 
 SETTINGS_FILE="${WT_HERDR_SETTINGS:-$HOME/.config/herdr-app/settings.json}"
@@ -142,6 +142,15 @@ cmd_hook_remove() {
   return 0
 }
 
+# PostToolUse on ExitWorktree: the session left its worktree, so it no longer holds it.
+# "remove" already cleared the lock in hook-remove; "keep" fires no worktree hook, so clear it here.
+cmd_hook_exit_worktree() {
+  local session_id
+  session_id="$(jq -r '.session_id // empty' <<<"$(cat)")"
+  [[ -n "$session_id" ]] || return 0
+  rm -f "$CACHE_DIR/active/$session_id"
+}
+
 cmd_hook_session_end() {
   local session_id
   session_id="$(jq -r '.session_id // empty' <<<"$(cat)")"
@@ -268,8 +277,9 @@ main() {
     prune) cmd_prune "$@" ;;
     hook-create) cmd_hook_create ;;
     hook-remove) cmd_hook_remove ;;
+    hook-exit-worktree) cmd_hook_exit_worktree ;;
     hook-session-end) cmd_hook_session_end ;;
-    *) die "usage: wt path|new|prune|hook-create|hook-remove|hook-session-end" ;;
+    *) die "usage: wt path|new|prune|hook-create|hook-remove|hook-exit-worktree|hook-session-end" ;;
   esac
 }
 

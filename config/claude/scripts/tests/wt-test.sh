@@ -119,6 +119,16 @@ test_hook_create_last_line_and_lock() {
   assert_eq "$ROOT/proj/feat-c" "$(cat "$WT_CACHE/active/s1")" "lock content"
 }
 
+test_hook_exit_worktree_keep_clears_lock() {
+  local repo; repo="$(make_repo)"
+  echo "{\"name\":\"feat/k\",\"cwd\":\"$repo\",\"session_id\":\"s1\"}" | "$WT" hook-create >/dev/null 2>&1
+  mkdir -p "$WT_CACHE/active"; echo other >"$WT_CACHE/active/s2"
+  echo '{"session_id":"s1","tool_name":"ExitWorktree","tool_input":{"action":"keep"}}' | "$WT" hook-exit-worktree
+  assert_fails "lock gone" test -e "$WT_CACHE/active/s1"
+  assert_ok "other session lock kept" test -e "$WT_CACHE/active/s2"
+  assert_ok "worktree kept" test -d "$ROOT/proj/feat-k"
+}
+
 test_hook_create_fails_when_path_is_plain_dir() {
   local repo out; repo="$(make_repo)"
   mkdir -p "$ROOT/proj/feat-z"; echo x >"$ROOT/proj/feat-z/file"

@@ -80,6 +80,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "ExitWorktree",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/wt hook-exit-worktree",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }
