@@ -152,10 +152,6 @@ bindkey "^[f" forward-word       # Raw meta (classic Emacs / fallback)
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/vault vault
 
-# Auto-Warpify (guarded to prevent re-bootstrap on re-source)
-if [[ -z "$WARP_BOOTSTRAPPED" && "$-" == *i* ]]; then
-  printf '\eP$f{"hook": "SourcedRcFileForWarp", "value": { "shell": "zsh", "uname": "Darwin", "tmux": false }}\x9c'
-fi
 # zoxide: in Claude Code, init without --cmd cd (cd override causes errors there).
 # Outside Claude Code, override cd. Cached separately per mode.
 if [[ "$CLAUDECODE" == "1" ]]; then
