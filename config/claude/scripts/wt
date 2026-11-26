@@ -1,0 +1,265 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# wt: the only code that decides where git worktrees live.
+# Usage: wt path <branch> | new <branch> | prune [--auto] [repo] | prune --confirm|--keep <path> | hook-create | hook-remove | hook-session-end
+# Hooks read Claude Code's JSON on stdin.
+
+SETTINGS_FILE="${WT_HERDR_SETTINGS:-$HOME/.config/herdr-app/settings.json}"
+CACHE_DIR="${WT_CACHE:-$HOME/.cache/wt}"
+
+die() { echo "wt: $*" >&2; exit 1; }
+
+wt_root() {
+  local configured=""
+  [[ -f "$SETTINGS_FILE" ]] && configured="$(jq -r '.worktrees.directory // empty' "$SETTINGS_FILE")"
+  [[ -z "$configured" ]] && { echo "$HOME/.herdr/worktrees"; return; }
+  [[ "$configured" == "~" || "$configured" == "~/"* ]] && configured="$HOME${configured:1}"
+  echo "${configured%/}"
+}
+
+repo_main() {
+  local common_dir
+  common_dir="$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
+  echo "${common_dir%/.git}"
+}
+
+repo_name() { basename "$(repo_main "$1")"; }
+
+# Must match slug() in ~/.config/herdr-app/mods/worktree/main.js.
+slug() {
+  perl -CSA -MUnicode::Normalize -e '
+    my $normalized = NFC($ARGV[0]);
+    (my $name = $normalized) =~ s/[^\p{L}\p{M}\p{N}._-]+/-/g;
+    $name =~ s/^-+|-+$//g;
+    if ($name eq "") {
+      my $hash = 2166136261;
+      $hash = (($hash ^ ord($_)) * 16777619) & 0xffffffff for split //, $normalized;
+      $name = sprintf("branch-%08x", $hash);
+    }
+    print $name;' -- "$1"
+}
+
+worktree_path() { echo "$(wt_root)/$(repo_name "$PWD")/$(slug "$1")"; }
+
+# Prune only: guessing a base branch for deletion is unsafe, so origin/HEAD or nothing.
+default_branch() {
+  local repo="$1" ref
+  if ! ref="$(git -C "$repo" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)"; then
+    git -C "$repo" remote set-head origin --auto >/dev/null 2>&1 || return 1
+    ref="$(git -C "$repo" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)" || return 1
+  fi
+  echo "${ref#origin/}"
+}
+
+# Merged when (A) the tip moved past wtBase and is in origin/<default>, or (B) gh reports a merged PR with this tip.
+is_merged() {
+  local repo="$1" branch="$2" default="${3:-}" tip wt_base
+  [[ -n "$default" ]] || default="$(default_branch "$repo")" || return 1
+  tip="$(git -C "$repo" rev-parse "refs/heads/$branch")" || return 1
+  wt_base="$(git -C "$repo" config "branch.$branch.wtBase" || true)"
+  if [[ -n "$wt_base" && "$tip" != "$wt_base" ]] && git -C "$repo" merge-base --is-ancestor "$tip" "origin/$default"; then
+    return 0
+  fi
+  (cd "$repo" && gh pr list --head "$branch" --state merged --json headRefOid 2>/dev/null) \
+    | jq -e --arg tip "$tip" 'any(.[]; .headRefOid == $tip)' >/dev/null 2>&1
+}
+
+is_worktree_on_branch() {
+  local path="$1" branch="$2" main="$3"
+  [[ -d "$path" ]] || return 1
+  [[ "$(repo_main "$path" 2>/dev/null)" == "$main" ]] || return 1
+  [[ "$(git -C "$path" branch --show-current)" == "$branch" ]]
+}
+
+cmd_new() {
+  local branch="${1:-}"
+  [[ -n "$branch" ]] || die "usage: wt new <branch>"
+  local main path
+  main="$(repo_main "$PWD")" || die "not inside a git repo"
+  path="$(worktree_path "$branch")"
+
+  if is_worktree_on_branch "$path" "$branch" "$main"; then
+    echo "$path"
+    return
+  fi
+  mkdir -p "$(dirname "$path")" || return 1
+  if git show-ref --verify --quiet "refs/heads/$branch"; then
+    git worktree add "$path" "$branch" >&2 || return 1
+  else
+    local start_sha
+    start_sha="$(git rev-parse HEAD)" || return 1
+    git worktree add -b "$branch" "$path" HEAD >&2 || return 1
+    git config "branch.$branch.wtBase" "$start_sha" || return 1
+  fi
+  echo "$path"
+}
+
+cmd_hook_create() {
+  local input name cwd session_id path
+  input="$(cat)"
+  name="$(jq -r '.name // empty' <<<"$input")"
+  cwd="$(jq -r '.cwd // empty' <<<"$input")"
+  session_id="$(jq -r '.session_id // empty' <<<"$input")"
+  [[ -n "$cwd" ]] || die "hook-create: missing cwd"
+  cd "$cwd" || die "hook-create: cannot cd to $cwd"
+  # No pipe: a pipe would hide cmd_new's exit status.
+  path="$(cmd_new "$name")" || die "hook-create: worktree creation failed"
+  path="${path##*$'\n'}"
+  if [[ -n "$session_id" ]]; then
+    mkdir -p "$CACHE_DIR/active"
+    echo "$path" >"$CACHE_DIR/active/$session_id"
+  fi
+  echo "$path"
+}
+
+cmd_hook_remove() {
+  local input path session_id main branch wt_base
+  input="$(cat)"
+  path="$(jq -r '.worktree_path // empty' <<<"$input")"
+  session_id="$(jq -r '.session_id // empty' <<<"$input")"
+  [[ -d "$path" ]] || die "hook-remove: no such worktree: $path"
+  main="$(repo_main "$path")"
+  branch="$(git -C "$path" branch --show-current)"
+  wt_base="$(git -C "$main" config "branch.$branch.wtBase" || true)"
+
+  git -C "$main" worktree remove "$path" >&2
+  if [[ -n "$branch" ]]; then
+    if is_merged "$main" "$branch" "" || [[ "$(git -C "$main" rev-parse "$branch")" == "$wt_base" ]]; then
+      git -C "$main" branch -D "$branch" >&2
+    fi
+  fi
+  [[ -n "$session_id" ]] && rm -f "$CACHE_DIR/active/$session_id"
+  return 0
+}
+
+cmd_hook_session_end() {
+  local session_id
+  session_id="$(jq -r '.session_id // empty' <<<"$(cat)")"
+  [[ -n "$session_id" ]] || return 0
+  rm -f "$CACHE_DIR/active/$session_id" "$CACHE_DIR/override-$session_id" "$CACHE_DIR/shown-$session_id"
+}
+
+# Rewrites $CACHE_DIR/pending/<repo>.json with a jq filter; extra args go to jq.
+pending_update() {
+  local file="$CACHE_DIR/pending/$1.json" filter="$2"
+  shift 2
+  mkdir -p "$(dirname "$file")"
+  [[ -f "$file" ]] || echo '[]' >"$file"
+  jq "$@" "$filter" "$file" >"$file.tmp" && mv "$file.tmp" "$file"
+}
+
+has_live_lock() {
+  [[ -d "$CACHE_DIR/active" ]] || return 1
+  [[ -n "$(find "$CACHE_DIR/active" -type f -mtime -7 -exec grep -lxF -- "$1" {} + 2>/dev/null)" ]]
+}
+
+has_live_terminal() {
+  jq -e --arg p "$1" 'any(.terminals[]?; (.cwd // "") | (. == $p or startswith($p + "/")))' \
+    <<<"$terminals_json" >/dev/null
+}
+
+remove_worktree_and_branch() {
+  local main="$1" path="$2" branch="$3" force_flag="${4:-}"
+  git -C "$main" worktree remove ${force_flag:+"$force_flag"} "$path" >&2 || return 1
+  git -C "$main" branch -D "$branch" >&2
+  git -C "$main" config --unset "branch.$branch.wtBase" || true
+  pending_update "$(basename "$main")" 'map(select(.path != $path))' --arg path "$path"
+}
+
+# Prints removed|pending|kept. Reads main, default, terminals_json from cmd_prune.
+prune_worktree() {
+  local path="$1" branch="$2" dirty ignored
+  [[ "$branch" != "$default" ]] || { echo kept; return; }
+  if git -C "$main" config --get "branch.$branch.wtKeep" >/dev/null \
+    || has_live_lock "$path" || has_live_terminal "$path"; then
+    echo kept; return
+  fi
+  # $(...) disables set -e: a failed status must keep the worktree, never read as "clean".
+  dirty="$(git -C "$path" status --porcelain)" || { echo kept; return; }
+  [[ -z "$dirty" ]] || { echo kept; return; }
+  is_merged "$main" "$branch" "$default" || { echo kept; return; }
+  ignored="$(git -C "$path" status --porcelain --ignored=matching | sed -n 's/^!! //p')" || { echo kept; return; }
+  if [[ -n "$ignored" ]]; then
+    pending_update "$(basename "$main")" \
+      'map(select(.path != $path)) + [{path: $path, branch: $branch, ignored: ($ignored | split("\n") | map(select(. != "")))}]' \
+      --arg path "$path" --arg branch "$branch" --arg ignored "$ignored"
+    echo pending; return
+  fi
+  remove_worktree_and_branch "$main" "$path" "$branch" && echo removed || echo kept
+}
+
+# The only path that force-removes: re-checks merged + clean first.
+prune_confirm() {
+  local path="${1:-}" main branch
+  [[ -n "$path" ]] || die "usage: wt prune --confirm <path>"
+  main="$(repo_main "$path")" || die "not a worktree: $path"
+  [[ "$path" == "$(wt_root)/$(basename "$main")/"* ]] || die "outside the worktree root: $path"
+  branch="$(git -C "$path" branch --show-current)"
+  [[ -n "$branch" ]] || die "detached HEAD: $path"
+  is_merged "$main" "$branch" "" || die "not merged: $branch"
+  [[ -z "$(git -C "$path" status --porcelain)" ]] || die "not clean: $path"
+  remove_worktree_and_branch "$main" "$path" "$branch" --force
+}
+
+prune_keep() {
+  local path="${1:-}" main branch
+  [[ -n "$path" ]] || die "usage: wt prune --keep <path>"
+  main="$(repo_main "$path")" || die "not a worktree: $path"
+  branch="$(git -C "$path" branch --show-current)"
+  [[ -n "$branch" ]] || die "detached HEAD: $path"
+  git -C "$main" config "branch.$branch.wtKeep" true
+  pending_update "$(basename "$main")" 'map(select(.path != $path))' --arg path "$path"
+}
+
+cmd_prune() {
+  case "${1:-}" in
+    --confirm) prune_confirm "${2:-}"; return ;;
+    --keep) prune_keep "${2:-}"; return ;;
+  esac
+  local auto=false
+  [[ "${1:-}" == "--auto" ]] && { auto=true; shift; }
+  local main default terminals_json='{"terminals":[]}' prefix path branch outcome details=""
+  local removed=0 pending=0 kept=0
+  main="$(repo_main "${1:-$PWD}")" || return 0
+  prefix="$(wt_root)/$(basename "$main")/"
+  git -C "$main" fetch --prune origin >/dev/null 2>&1 || echo "wt prune: fetch failed for $main" >&2
+  default="$(default_branch "$main")" || { echo "wt prune: no origin/HEAD for $main, skipped" >&2; return 0; }
+  if command -v hc >/dev/null; then
+    terminals_json="$(hc ls --json 2>/dev/null)" || { echo "wt prune: hc ls failed, skipped" >&2; return 0; }
+  fi
+  while IFS=$'\t' read -r path branch; do
+    [[ "$path" == "$prefix"* ]] || continue
+    outcome="$(prune_worktree "$path" "$branch")"
+    case "$outcome" in
+      removed) removed=$((removed + 1)) ;;
+      pending) pending=$((pending + 1)) ;;
+      *) kept=$((kept + 1)) ;;
+    esac
+    details+="$outcome $path"$'\n'
+  done < <(git -C "$main" worktree list --porcelain | awk '/^worktree /{p=substr($0,10)} /^branch /{sub("refs/heads/","",$2); print p "\t" $2}')
+  if [[ "$auto" == true ]]; then
+    mkdir -p "$CACHE_DIR"
+    { echo "$(date -u +%FT%TZ) $main"; printf '%s' "$details"; } >>"$CACHE_DIR/prune.log"
+  else
+    printf '%s' "$details"
+  fi
+  echo "wt prune: removed $removed, pending $pending, kept $kept"
+}
+
+main() {
+  local subcommand="${1:-}"
+  shift || true
+  case "$subcommand" in
+    path) [[ -n "${1:-}" ]] || die "usage: wt path <branch>"; repo_main "$PWD" >/dev/null || die "not inside a git repo"; worktree_path "$1" ;;
+    new) cmd_new "$@" ;;
+    prune) cmd_prune "$@" ;;
+    hook-create) cmd_hook_create ;;
+    hook-remove) cmd_hook_remove ;;
+    hook-session-end) cmd_hook_session_end ;;
+    *) die "usage: wt path|new|prune|hook-create|hook-remove|hook-session-end" ;;
+  esac
+}
+
+# Guard lets later scripts source the functions without running main.
+[[ "${BASH_SOURCE[0]}" != "$0" ]] || main "$@"

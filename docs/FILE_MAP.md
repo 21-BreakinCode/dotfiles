@@ -18,6 +18,7 @@ Do not edit it by hand. Run the script again after you change `bootstrap.sh`.
 | `config/claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | `config/claude/rules` | `~/.claude/rules` |
 | `config/claude/scripts` | `~/.claude/scripts` |
+| `config/claude/scripts/wt` | `~/.local/bin/wt` |
 | `config/nvim` | `~/.config/nvim` |
 | `config/gitconfig` | `~/.gitconfig` |
 | `config/gitconfig-breakincode` | `~/.gitconfig-breakincode` |

@@ -35,7 +35,7 @@
     "cmd-shift-r": "space.rename",
     "cmd-/": "app.help",
     "cmd-shift-/": "app.help",
-    "cmd-\\": "layout.toggle:sidebar",
+    "cmd-b": "layout.toggle:sidebar",
     "alt-\\": "layout.toggle:panel",
     "cmd-=": "app.zoom_in",
     "cmd-+": "app.zoom_in",

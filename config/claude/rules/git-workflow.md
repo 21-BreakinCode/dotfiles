@@ -24,3 +24,7 @@ When creating PRs:
 3. Draft comprehensive PR summary
 4. Include test plan with TODOs
 5. Push with `-u` flag if new branch
+
+## Worktrees
+
+Create and remove git worktrees only with `wt` (`wt new <branch>`, `wt prune`), never with `git worktree add`.
