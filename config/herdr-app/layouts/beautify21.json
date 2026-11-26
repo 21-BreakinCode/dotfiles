@@ -264,16 +264,6 @@
       ],
       "gap": 10,
       "resizable": false
-    },
-    {
-      "id": "b94cbed55d0108484045677eb175185a8",
-      "type": "block",
-      "content": {
-        "mod": "ctrl-palette"
-      },
-      "size": {
-        "px": 320
-      }
     }
   ],
   "background": "#00000000",
