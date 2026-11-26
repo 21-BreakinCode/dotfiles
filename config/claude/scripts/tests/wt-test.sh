@@ -156,6 +156,27 @@ test_hook_remove_refuses_dirty() {
   assert_ok "dir kept" test -d "$path"
 }
 
+test_hook_remove_refuses_ignored_files() {
+  local repo path; repo="$(make_repo)"
+  path="$(make_merged_worktree "$repo" feat/ig)"
+  echo secret >"$path/.env"
+  mkdir -p "$WT_CACHE/active"; echo "$path" >"$WT_CACHE/active/s1"
+  assert_fails "refuses" bash -c "echo '{\"worktree_path\":\"$path\",\"session_id\":\"s1\"}' | '$WT' hook-remove 2>$TEST_TMP/err"
+  assert_ok ".env kept" test -f "$path/.env"
+  assert_ok "lock kept" test -e "$WT_CACHE/active/s1"
+  grep -q "\.env" "$TEST_TMP/err" || { echo "  stderr lacks .env: $(cat "$TEST_TMP/err")" >&2; exit 1; }
+}
+
+test_hook_remove_succeeds_when_folder_already_gone() {
+  local repo path; repo="$(make_repo)"
+  path="$(run_wt_in "$repo" new feat/gone 2>/dev/null | tail -n1)"
+  mkdir -p "$WT_CACHE/active"; echo "$path" >"$WT_CACHE/active/s1"
+  rm -rf "$path"
+  assert_ok "exit 0" bash -c "echo '{\"worktree_path\":\"$path\",\"session_id\":\"s1\",\"cwd\":\"$repo\"}' | '$WT' hook-remove"
+  assert_fails "lock gone" test -e "$WT_CACHE/active/s1"
+  assert_eq "" "$(git -C "$repo" worktree list --porcelain | grep -F "$path")" "stale entry pruned"
+}
+
 # Prints the path of a worktree whose branch (with one commit and a .gitignore for .env) is merged into origin/main.
 make_merged_worktree() {
   local repo="$1" branch="$2" path
@@ -254,6 +275,20 @@ test_prune_keeps_when_ignored_status_fails() {
   assert_ok ".env kept" test -f "$path/.env"
 }
 
+test_prune_keeps_current_worktree() {
+  local repo path; repo="$(make_repo)"
+  path="$(make_merged_worktree "$repo" feat/cur)"
+  run_wt_in "$path" prune >/dev/null 2>&1
+  assert_ok "own folder kept" test -d "$path"
+}
+
+test_pending_update_survives_stale_tmp() {
+  local file="$WT_CACHE/pending/proj.json"
+  mkdir -p "$file.tmp"
+  ( source "$WT"; CACHE_DIR="$WT_CACHE"; pending_update proj '. + [1]' ) >/dev/null 2>&1
+  assert_eq "[1]" "$(jq -c . "$file")" "pending file"
+}
+
 test_prune_keeps_wtkeep() {
   local repo path; repo="$(make_repo)"
   path="$(make_merged_worktree "$repo" feat/k)"
@@ -345,8 +380,8 @@ test_guard_prompt_hint_on_main() {
 
 test_guard_prompt_override() {
   local repo out; repo="$(make_repo)"
-  out="$(guard_run prompt "$(prompt_json "$repo" "quick typo fix ON MAIN")")"
-  assert_eq "" "$out" "no output"
+  out="$(guard_run prompt "$(prompt_json "$repo" "quick typo fix !main")")"
+  [[ "$(jq -r .hookSpecificOutput.additionalContext <<<"$out")" == Override\ active* ]] || { echo "  no context: $out" >&2; exit 1; }
   assert_ok "override file" test -e "$WT_CACHE/override-s1"
 }
 
@@ -428,13 +463,30 @@ test_guard_denies_edit_via_symlink_and_relative_path() {
 
 test_guard_override_phrase_needs_word_boundary() {
   local repo; repo="$(make_repo)"
-  guard_run prompt "$(prompt_json "$repo" "fix the on maintenance page")" >/dev/null
+  guard_run prompt "$(prompt_json "$repo" "fix the !maintenance page")" >/dev/null
   assert_fails "no override" test -e "$WT_CACHE/override-s1"
+}
+
+test_guard_override_needs_bang_token() {
+  local repo out; repo="$(make_repo)"
+  for phrase in "fix the login crash on main" "fix a!main bug" "use !MAIN"; do
+    guard_run prompt "$(prompt_json "$repo" "$phrase")" >/dev/null
+    assert_fails "no override for [$phrase]" test -e "$WT_CACHE/override-s1"
+  done
+  out="$(guard_run prompt "$(prompt_json "$repo" "typo fix !main please")")"
+  assert_ok "override file" test -e "$WT_CACHE/override-s1"
+  [[ "$(jq -r .hookSpecificOutput.additionalContext <<<"$out")" == "Override active for this session: edits on main in the main checkout are allowed." ]] || { echo "  context: $out" >&2; exit 1; }
+}
+
+test_guard_worktree_remove_reason_names_routes() {
+  local repo reason; repo="$(make_repo)"
+  reason="$(guard_run tool "$(tool_json "$repo" Bash command "git worktree remove x")" | deny_reason)"
+  [[ "$reason" == *ExitWorktree* && "$reason" == *"ask the person"* ]] || { echo "  reason: [$reason]" >&2; exit 1; }
 }
 
 test_guard_no_hint_after_override() {
   local repo out; repo="$(make_repo)"
-  guard_run prompt "$(prompt_json "$repo" "typo on main")" >/dev/null
+  guard_run prompt "$(prompt_json "$repo" "typo !main")" >/dev/null
   out="$(guard_run prompt "$(prompt_json "$repo" "next change")")"
   assert_eq "" "$out" "hint after override"
 }

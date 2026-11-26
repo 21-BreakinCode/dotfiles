@@ -73,8 +73,9 @@ run_prompt_mode() {
   prompt="$(field .prompt)"
   context="$(pending_hint)"
   if [[ "$is_protected" == true ]]; then
-    if grep -Eqi '(^|[^[:alnum:]])on main([^[:alnum:]]|$)' <<<"$prompt"; then
+    if grep -Eq '(^|[[:space:]])!main([[:space:]]|$)' <<<"$prompt"; then
       mkdir -p "$CACHE_DIR"; touch "$override_file"
+      context+="${context:+$'\n'}Override active for this session: edits on $default_branch in the main checkout are allowed."
     elif [[ ! -e "$override_file" ]]; then
       context+="${context:+$'\n'}You are on $default_branch in the main checkout of $repo_name. Before you edit files for this request, call EnterWorktree with name \`<type>/<slug>\` (type from feat, fix, refactor, docs, test, chore, perf, ci). For questions that change no files, do not call it."
     fi
@@ -92,19 +93,19 @@ run_tool_mode() {
     Bash)
       command="$(field .tool_input.command)"
       if grep -Eq "$worktree_shape" <<<"$command"; then
-        deny "Use \`wt new <branch>\` or EnterWorktree to create worktrees, and \`wt prune\` to remove them."
+        deny "Use \`wt new <branch>\` or EnterWorktree to create, ExitWorktree (action remove) for this session's worktree, \`wt prune\` for merged ones, or ask the person."
         return
       fi
       grep -Eq "$commit_shape" <<<"$command" || return 0
       load_repo_state || return 0
       [[ "$is_protected" == true && ! -e "$override_file" ]] || return 0
-      deny "You are on $default_branch in the main checkout of $repo_name. Call EnterWorktree first, then commit there. To work here anyway, the person can say \"on main\"." ;;
+      deny "You are on $default_branch in the main checkout of $repo_name. Call EnterWorktree first, then commit there. To work here anyway, the person can say \"!main\"." ;;
     Edit|Write|MultiEdit|NotebookEdit)
       target="$(field '.tool_input.file_path // .tool_input.notebook_path')"
       load_repo_state || return 0
       target="$(canonical_path "$target")"
       [[ "$is_protected" == true && ! -e "$override_file" && "$target" == "$repo_main/"* ]] || return 0
-      deny "You are on $default_branch in the main checkout of $repo_name. Call EnterWorktree first, then edit there. To work here anyway, the person can say \"on main\"." ;;
+      deny "You are on $default_branch in the main checkout of $repo_name. Call EnterWorktree first, then edit there. To work here anyway, the person can say \"!main\"." ;;
   esac
 }
 

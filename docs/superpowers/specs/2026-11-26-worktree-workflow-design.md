@@ -211,7 +211,7 @@ default branch. Here, the default branch is `origin/HEAD` when set, else
 `init.defaultBranch`, else `main`, else `master`. Builder's call: a wrong
 guess in the guard only adds a hint or a deny, and deletes nothing.
 
-- `prompt` mode. If the prompt contains the override phrase `on main`, write
+- `prompt` mode. If the prompt contains the override token `!main` (case-sensitive, a standalone word), write
   `~/.cache/wt/override-<session_id>` and add no hint. In other protected
   cases, add this context: "You are on <default> in the main checkout of
   <repo>. Before you edit files for this request, call EnterWorktree with name

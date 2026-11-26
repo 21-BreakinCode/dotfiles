@@ -114,15 +114,24 @@ cmd_hook_create() {
 }
 
 cmd_hook_remove() {
-  local input path session_id main branch wt_base
+  local input path session_id cwd main branch wt_base ignored
   input="$(cat)"
   path="$(jq -r '.worktree_path // empty' <<<"$input")"
   session_id="$(jq -r '.session_id // empty' <<<"$input")"
-  [[ -d "$path" ]] || die "hook-remove: no such worktree: $path"
+  if [[ ! -d "$path" ]]; then
+    cwd="$(jq -r '.cwd // empty' <<<"$input")"
+    [[ -z "$cwd" ]] || git -C "$cwd" worktree prune >&2 || true
+    [[ -z "$session_id" ]] || rm -f "$CACHE_DIR/active/$session_id"
+    return 0
+  fi
   main="$(repo_main "$path")"
   branch="$(git -C "$path" branch --show-current)"
   wt_base="$(git -C "$main" config "branch.$branch.wtBase" || true)"
 
+  # $(...) disables set -e: a failed status must refuse, never read as "no ignored files".
+  ignored="$(git -C "$path" status --porcelain --ignored=matching | sed -n 's/^!! //p')" \
+    || die "hook-remove: cannot list ignored files in $path; the person decides (remove it by hand)"
+  [[ -z "$ignored" ]] || die "hook-remove: $path holds git-ignored files: ${ignored//$'\n'/, }. The person decides: run \`wt prune --confirm $path\` if merged, or remove it by hand."
   git -C "$main" worktree remove "$path" >&2
   if [[ -n "$branch" ]]; then
     if is_merged "$main" "$branch" "" || [[ "$(git -C "$main" rev-parse "$branch")" == "$wt_base" ]]; then
@@ -146,7 +155,9 @@ pending_update() {
   shift 2
   mkdir -p "$(dirname "$file")"
   [[ -f "$file" ]] || echo '[]' >"$file"
-  jq "$@" "$filter" "$file" >"$file.tmp" && mv "$file.tmp" "$file"
+  local tmp
+  tmp="$(mktemp "$file.XXXXXX")"
+  jq "$@" "$filter" "$file" >"$tmp" && mv "$tmp" "$file"
 }
 
 has_live_lock() {
@@ -170,6 +181,7 @@ remove_worktree_and_branch() {
 # Prints removed|pending|kept. Reads main, default, terminals_json from cmd_prune.
 prune_worktree() {
   local path="$1" branch="$2" dirty ignored
+  [[ "$(pwd -P)/" != "$path/"* ]] || { echo kept; return; }
   [[ "$branch" != "$default" ]] || { echo kept; return; }
   if git -C "$main" config --get "branch.$branch.wtKeep" >/dev/null \
     || has_live_lock "$path" || has_live_terminal "$path"; then
