@@ -5,22 +5,22 @@
   "title": "Better Tabs",
   "palette": [
     {
-      "title": "Panel: Files",
+      "title": "Files panel",
       "command": "better-tabs.button:files",
       "words": "files tree explorer"
     },
     {
-      "title": "Panel: Changes",
+      "title": "Changes panel",
       "command": "better-tabs.button:changes",
       "words": "changes diff git commit stage"
     },
     {
-      "title": "Panel: PRs",
+      "title": "PRs panel",
       "command": "better-tabs.button:prs",
       "words": "pr prs pull request review github"
     },
     {
-      "title": "Panel: CS Kanban",
+      "title": "CS Kanban panel",
       "command": "better-tabs.button:issues",
       "words": "cs kanban jira issues tickets"
     }
