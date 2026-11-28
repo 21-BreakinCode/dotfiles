@@ -37,13 +37,12 @@ link "config/herdr-config.toml"           "~/.config/herdr/config.toml"
 link "config/herdr-app/settings.json"     "~/.config/herdr-app/settings.json"
 link "config/herdr-app/keys.json"         "~/.config/herdr-app/keys.json"
 link "config/herdr-app/themes/gruvbox.json" "~/.config/herdr-app/themes/gruvbox.json"
-for herdr_path in layouts/beautify21.json \
-                  themes/herdr-glass.json \
-                  mods/better-files mods/better-changes mods/better-sidebar mods/better-tabs mods/better-config \
-                  mods/better-search mods/branch-pr mods/branch-jira mods/fuzzy-picker mods/ctrl-palette \
-                  mods/herdr-glass-tabs mods/herdr-glass-pane mods/herdr-glass-toast mods/herdr-glass-chrome \
-                  mods/herdr-glass-status mods/herdr-glass-agents mods/herdr-glass-spaces mods/herdr-glass-bg; do
+for herdr_path in layouts/beautify21.json themes/herdr-glass.json; do
   link "config/herdr-app/$herdr_path" "~/.config/herdr-app/$herdr_path"
+done
+for herdr_mod_dir in "$REPO_DIR"/config/herdr-app/mods/*/; do
+  herdr_mod_name="$(basename "$herdr_mod_dir")"
+  link "config/herdr-app/mods/$herdr_mod_name" "~/.config/herdr-app/mods/$herdr_mod_name"
 done
 # A file removed from this repo leaves a stale link behind: a broken one, or a mod folder
 # with only Herdr's ignored jsconfig.json and gpui-kit.d.ts left. Drop the ones that point here.
