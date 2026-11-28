@@ -4,6 +4,7 @@
 import { div, svg } from "gpui-kit";
 import { h_flex, v_flex, Popover, Input, Textarea, TextView } from "gpui-base";
 import { theme, settings } from "herdr";
+import { typeTone, typeLabel } from "../jira/model.js";
 
 // Plain px: Herdr scales a mod's sizes by zoom itself.
 export const TEXT = { badge: 10, caption: 11, small: 12, tab: 12.8, body: 13 };
@@ -364,6 +365,62 @@ export function IssueRow({ id, icon, title, meta, identifier, onClick }) {
         .text_color(t.dim)
         .child(div().flex_1().min_w(0).truncate().child(meta))
         .child(div().flex_none().font_family(codeFont()).child(identifier)),
+    );
+}
+
+// An issue type as a small coloured label: stories green, tasks blue, the rest dim.
+const TONE_COLOR = { story: "ansi2", task: "ansi4", other: "dim" };
+const CHIP_BG_ALPHA = "26"; // about 15%
+
+export function TypeChip(typeName) {
+  const color = theme()[TONE_COLOR[typeTone(typeName)]];
+  return div()
+    .flex_none()
+    .w(42)
+    .py(1)
+    .rounded(4)
+    .flex()
+    .justify_center()
+    .bg(`${color.slice(0, 7)}${CHIP_BG_ALPHA}`)
+    .text_size(TEXT.badge)
+    .font_semibold()
+    .text_color(color)
+    .tooltip(typeName ?? "")
+    .child(typeLabel(typeName));
+}
+
+// A story heading its tasks inside a status group. The chevron folds it; the rest opens it.
+export function StoryHeader({ id, typeName, identifier, title, status, collapsed, onToggle, onOpen }) {
+  const t = theme();
+  return h_flex()
+    .id(id)
+    .h(28)
+    .flex_none()
+    .px(8)
+    .gap(6)
+    .items_center()
+    .rounded(7)
+    .hover((s) => s.bg(t.hover))
+    .child(
+      div()
+        .id(`${id}-fold`)
+        .cursor_pointer()
+        .on_click((_e, cx) => onToggle(cx))
+        .child(Chevron(!collapsed)),
+    )
+    .child(
+      h_flex()
+        .id(`${id}-open`)
+        .flex_1()
+        .min_w(0)
+        .gap(6)
+        .items_center()
+        .cursor_pointer()
+        .on_click((_e, cx) => onOpen(cx))
+        .child(TypeChip(typeName))
+        .child(div().flex_none().text_size(TEXT.caption).text_color(t.dim).font_family(codeFont()).child(identifier))
+        .child(div().flex_1().min_w(0).truncate().font_medium().child(title ?? ""))
+        .child(div().flex_none().text_size(TEXT.caption).text_color(t.dim).child(status ?? "")),
     );
 }
 

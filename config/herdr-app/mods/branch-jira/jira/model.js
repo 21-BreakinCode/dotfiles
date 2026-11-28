@@ -77,22 +77,64 @@ export function panelShown(node, mod) {
 
 // ── Lists ───────────────────────────────────────────────────────────────────
 
-// Under each status, those being worked on first. Within a status they keep the
-// order Jira sent them in. The helper maps Jira's status categories to these types.
-const STATE_ORDER = ["started", "unstarted", "completed"];
+// Status groups in workflow order; the helper maps Jira's status categories to these types.
+const STATUS_GROUPS = [
+  { type: "unstarted", label: "To Do" },
+  { type: "started", label: "In Progress" },
+  { type: "completed", label: "Done" },
+];
+const NO_STATE = { type: "none", label: "No state" };
+const OTHER = "other";
+const TYPE_LABEL_MAX = 6;
 
-export function stateGroups(items) {
-  const groups = new Map();
-  for (const item of items) {
-    const name = item.state?.name ?? "No state";
-    if (!groups.has(name)) groups.set(name, { name, state: item.state, items: [] });
-    groups.get(name).items.push(item);
-  }
-  const rank = (g) => {
-    const i = STATE_ORDER.indexOf(g.state?.type);
-    return i < 0 ? STATE_ORDER.length : i;
+export function typeTone(typeName) {
+  const name = (typeName ?? "").toLowerCase();
+  return name === "story" || name === "task" ? name : "other";
+}
+
+export function typeLabel(typeName) {
+  const tone = typeTone(typeName);
+  if (tone !== "other") return tone.toUpperCase();
+  return (typeName ?? "").split(/\s+/)[0].toUpperCase().slice(0, TYPE_LABEL_MAX);
+}
+
+const storyOfItem = (item) => ({ identifier: item.identifier, title: item.title, type: item.type, state: item.state });
+
+// Inside a status group, each task under its story (from the Parent-Child link), in the
+// order Jira sent them. The parent is found by key, so an Epic parent works too. A story
+// with no tasks in the group is a plain row under Other.
+function storyBuckets(items) {
+  const parentKeys = new Set(items.map((item) => item.story?.identifier).filter(Boolean));
+  const buckets = new Map();
+  const bucket = (key, story) => {
+    if (!buckets.has(key)) buckets.set(key, { key, story, storyItem: null, items: [] });
+    return buckets.get(key);
   };
-  return [...groups.values()].sort((a, b) => rank(a) - rank(b));
+  const other = [];
+  for (const item of items) {
+    if (parentKeys.has(item.identifier)) {
+      const own = bucket(item.identifier, storyOfItem(item));
+      own.storyItem = item;
+      own.story = storyOfItem(item);
+    } else if (item.story?.identifier) bucket(item.story.identifier, item.story).items.push(item);
+    else other.push(item);
+  }
+  const stories = [...buckets.values()];
+  if (other.length) stories.push({ key: OTHER, story: null, storyItem: null, items: other });
+  return stories;
+}
+
+export function statusTree(items) {
+  return [...STATUS_GROUPS, NO_STATE]
+    .map(({ type, label }) => {
+      const inGroup = items.filter((item) =>
+        type === NO_STATE.type
+          ? !STATUS_GROUPS.some((g) => g.type === item.state?.type)
+          : item.state?.type === type,
+      );
+      return { type, label, color: inGroup[0]?.state?.color, count: inGroup.length, stories: storyBuckets(inGroup) };
+    })
+    .filter((group) => group.count > 0);
 }
 
 // ── An issue at a glance ────────────────────────────────────────────────────

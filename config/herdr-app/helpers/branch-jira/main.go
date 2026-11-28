@@ -177,8 +177,31 @@ func user(v any) Obj {
 	return Obj{"id": u["accountId"], "name": u["displayName"], "displayName": u["displayName"]}
 }
 
-const cardFields = "summary,status,priority,assignee,issuetype,project,labels,created,updated"
+const cardFields = "summary,status,priority,assignee,issuetype,project,labels,created,updated,issuelinks"
 const detailFields = cardFields + ",description,parent,subtasks"
+
+// Stories and tasks are joined by the custom "Parent-Child" link, not Jira's parent field.
+const storyLinkType = "Parent-Child"
+
+func storyOf(c creds, links any) Obj {
+	for _, l := range array(links) {
+		link := object(l)
+		story := object(link["inwardIssue"])
+		if text(object(link["type"])["name"]) != storyLinkType || story == nil {
+			continue
+		}
+		key := text(story["key"])
+		fields := object(story["fields"])
+		return Obj{
+			"identifier": key,
+			"title":      fields["summary"],
+			"url":        c.base + "/browse/" + key,
+			"type":       Obj{"name": object(fields["issuetype"])["name"]},
+			"state":      statusOf(fields["status"]),
+		}
+	}
+	return nil
+}
 
 func card(c creds, raw any) Obj {
 	issue := object(raw)
@@ -202,6 +225,7 @@ func card(c creds, raw any) Obj {
 		"type":          Obj{"name": object(f["issuetype"])["name"]},
 		"project":       Obj{"key": project["key"], "name": project["name"]},
 		"labels":        labels,
+		"story":         storyOf(c, f["issuelinks"]),
 	}
 }
 

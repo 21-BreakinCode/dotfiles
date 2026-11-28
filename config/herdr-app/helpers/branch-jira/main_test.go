@@ -212,3 +212,38 @@ func TestMarkdownToADF(t *testing.T) {
 		t.Fatalf("got %s", got)
 	}
 }
+
+func TestListReturnsStoryFromParentChildLink(t *testing.T) {
+	link := func(kind, key, summary, category string) Obj {
+		return Obj{"type": Obj{"name": kind}, "inwardIssue": Obj{"key": key, "fields": Obj{
+			"summary": summary, "issuetype": Obj{"name": "Story"}, "status": Obj{"name": "In Progress", "statusCategory": Obj{"key": category}}}}}
+	}
+	task := raw("AB-12", "Task")
+	object(task["fields"])["issuelinks"] = []any{
+		link("Relates", "CR-9", "Other", "new"),
+		link("Parent-Child", "AB-10", "Hooks", "indeterminate"),
+		link("Parent-Child", "AB-11", "Second", "new"),
+	}
+	log := mock(t, func(r sent) (int, any) {
+		return 200, Obj{"issues": []any{task, raw("CR-5", "Alone")}, "isLast": true}
+	})
+	out, err := handle(context.Background(), Request{Action: "list", Scope: "mine"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	asked := false
+	for _, f := range (*log)[0].body["fields"].([]any) {
+		asked = asked || f == "issuelinks"
+	}
+	if !asked {
+		t.Fatalf("fields %v lack issuelinks", (*log)[0].body["fields"])
+	}
+	items := array(object(out)["items"])
+	story := object(object(items[0])["story"])
+	if story["identifier"] != "AB-10" || story["title"] != "Hooks" || object(story["state"])["type"] != "started" || object(story["type"])["name"] != "Story" {
+		t.Fatalf("story %v", story)
+	}
+	if lone, _ := json.Marshal(object(items[1])["story"]); string(lone) != "null" {
+		t.Fatalf("lone item story %v", object(items[1])["story"])
+	}
+}

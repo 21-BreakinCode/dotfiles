@@ -2,7 +2,7 @@
 import { div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { theme } from "herdr";
-import { person, stateGroups, timeAgo } from "../jira/model.js";
+import { person, statusTree, timeAgo } from "../jira/model.js";
 import {
   TEXT,
   Busy,
@@ -18,9 +18,13 @@ import {
   Row,
   SmallButton,
   StateDot,
+  StoryHeader,
   TextButton,
   TextField,
+  TypeChip,
 } from "./ui.js";
+
+const NESTED_INDENT = 14;
 
 const SCOPES = [
   { id: "mine", label: "My issues" },
@@ -192,23 +196,59 @@ export const listMethods = {
       .child(choosers);
   },
 
-  issueRow(issue, t) {
+  openFromList(identifier, cx) {
+    this.composer = null;
+    this.notice = null;
+    this.opening = { identifier };
+    this.openIssue(identifier, cx);
+    cx.notify();
+  },
+
+  // `groupLabel` set: a row in a status group, which names its status only when it differs.
+  issueRow(issue, t, groupLabel = null, nested = false) {
     const owner = person(issue.assignee) || "Unassigned";
     const where = issue.priorityLabel;
-    return IssueRow({
+    const status = groupLabel && issue.state?.name !== groupLabel ? issue.state?.name : null;
+    const row = IssueRow({
       id: `issue-${issue.id}`,
-      icon: StateDot(issue.state?.color),
+      icon: groupLabel ? TypeChip(issue.type?.name) : StateDot(issue.state?.color),
       title: issue.title,
       identifier: issue.identifier,
-      meta: [owner, timeAgo(issue.updatedAt), where].filter(Boolean).join(" · "),
-      onClick: (cx) => {
-        this.composer = null;
-        this.notice = null;
-        this.opening = { identifier: issue.identifier };
-        this.openIssue(issue.identifier, cx);
-        cx.notify();
-      },
+      meta: [status, owner, timeAgo(issue.updatedAt), where].filter(Boolean).join(" · "),
+      onClick: (cx) => this.openFromList(issue.identifier, cx),
     });
+    return nested ? div().pl(NESTED_INDENT).child(row) : row;
+  },
+
+  // A story's heading and its tasks, or the Other bucket, inside one status group.
+  storyBucket(list, group, bucket, t) {
+    const key = `story:${group.type}:${bucket.key}`;
+    const open = !this.closedGroups.has(key);
+    const id = `issue-story-${group.type}-${bucket.key}`;
+    if (bucket.story)
+      list.child(
+        StoryHeader({
+          id,
+          typeName: bucket.story.type?.name ?? "Story",
+          identifier: bucket.story.identifier,
+          title: bucket.story.title,
+          status: bucket.story.state?.name,
+          collapsed: !open,
+          onToggle: (cx) => this.toggleGroup(key, cx),
+          onOpen: (cx) => this.openFromList(bucket.story.identifier, cx),
+        }),
+      );
+    else
+      list.child(
+        GroupHeader({
+          id,
+          label: "Other",
+          count: bucket.items.length,
+          collapsed: !open,
+          onClick: (cx) => this.toggleGroup(key, cx),
+        }),
+      );
+    if (open) list.children(bucket.items.map((issue) => this.issueRow(issue, t, group.label, true)));
   },
 
   // With nothing on the branch, say so and offer to link one.
@@ -260,21 +300,21 @@ export const listMethods = {
       .overflow_y_scrollbar()
       .p(6);
     if (!this.items.length) list.child(Message("No matching issues."));
-    stateGroups(this.items).forEach((group, i) => {
-      const key = `state:${group.name}`;
+    statusTree(this.items).forEach((group, i) => {
+      const key = `state:${group.label}`;
       const open = !this.closedGroups.has(key);
       list.child(
         GroupHeader({
-          id: `issue-group-${group.name}`,
-          label: group.name,
-          count: group.items.length,
-          icon: StateDot(group.state?.color, 8),
+          id: `issue-group-${group.type}`,
+          label: group.label,
+          count: group.count,
+          icon: StateDot(group.color, 8),
           collapsed: !open,
           divided: i > 0,
           onClick: (cx) => this.toggleGroup(key, cx),
         }),
       );
-      if (open) list.children(group.items.map((issue) => this.issueRow(issue, t)));
+      if (open) group.stories.forEach((bucket) => this.storyBucket(list, group, bucket, t));
     });
     if (this.cursor)
       list.child(
