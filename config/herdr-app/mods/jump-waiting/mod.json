@@ -1,0 +1,6 @@
+{
+  "place": "none",
+  "title": "Jump to waiting agent",
+  "overlay": { "kind": "popup", "width": 0, "height": 0, "frame": "none" },
+  "palette": [{ "title": "Jump to waiting agent", "command": "mod.open", "args": { "name": "jump-waiting" }, "words": "blocked done needs you" }]
+}
