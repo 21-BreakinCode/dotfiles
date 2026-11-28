@@ -19,6 +19,7 @@ import {
   StateDot,
   StatusLabel,
   StoryHeader,
+  TYPE_CHIP_WIDTH,
   TextButton,
   TextField,
   TypeChip,
@@ -150,6 +151,7 @@ export const listMethods = {
     const row = IssueRow({
       id: `issue-${issue.id}`,
       icon: groupLabel ? TypeChip(issue.type?.name) : StateDot(issue.state?.color),
+      iconWidth: groupLabel ? TYPE_CHIP_WIDTH : undefined,
       title: issue.title,
       label: status ? StatusLabel(status, issue.state?.color) : null,
       identifier: issue.identifier,

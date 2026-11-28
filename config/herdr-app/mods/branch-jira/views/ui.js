@@ -352,7 +352,12 @@ export function StatusLabel(text, color) {
 
 // An issue in a list: a title, then details with its identifier on the right, so
 // titles, details and identifiers each line up down the list. `label` sits after the title.
-export function IssueRow({ id, icon, title, label, meta, identifier, onClick }) {
+// The meta line starts under the title: past the icon and the gap after it.
+const ROW_ICON_GAP = 8;
+const STATE_DOT_WIDTH = 10;
+export const TYPE_CHIP_WIDTH = 42;
+
+export function IssueRow({ id, icon, iconWidth = STATE_DOT_WIDTH, title, label, meta, identifier, onClick }) {
   const t = theme();
   return v_flex()
     .id(id)
@@ -366,7 +371,7 @@ export function IssueRow({ id, icon, title, label, meta, identifier, onClick }) 
     .on_click((_e, cx) => onClick(cx))
     .child(
       h_flex()
-        .gap(8)
+        .gap(ROW_ICON_GAP)
         .items_center()
         .child(icon)
         .child(div().flex_1().min_w(0).truncate().child(title))
@@ -374,7 +379,7 @@ export function IssueRow({ id, icon, title, label, meta, identifier, onClick }) 
     )
     .child(
       h_flex()
-        .pl(18)
+        .pl(iconWidth + ROW_ICON_GAP)
         .gap(8)
         .items_center()
         .text_size(TEXT.caption)
@@ -392,7 +397,7 @@ export function TypeChip(typeName) {
   const color = theme()[TONE_COLOR[typeTone(typeName)]];
   return div()
     .flex_none()
-    .w(42)
+    .w(TYPE_CHIP_WIDTH)
     .py(1)
     .rounded(4)
     .flex()
