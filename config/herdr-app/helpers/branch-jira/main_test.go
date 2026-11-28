@@ -51,54 +51,33 @@ func raw(key, summary string) Obj {
 	}}
 }
 
-func TestJQLCombinesScopeStateProjectAndSearch(t *testing.T) {
-	cases := map[string]Request{
-		`assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC`:                         {Scope: "mine"},
-		`sprint in openSprints() AND statusCategory = "In Progress" AND project = CR ORDER BY updated DESC`: {Scope: "sprint", State: "started", Project: "CR"},
-		`key = CR-12 ORDER BY updated DESC`:                                                                 {State: "all", Search: "cr-12"},
-		`statusCategory != Done AND text ~ "fix login" ORDER BY updated DESC`:                               {Search: ` fix "login"* `},
-		`created is not EMPTY ORDER BY updated DESC`:                                                        {Scope: "all", State: "all"},
-	}
-	for want, r := range cases {
-		if got, err := jql(r); err != nil || got != want {
-			t.Errorf("%+v: got %q %v", r, got, err)
+// A board named "AB Kanban" (id 7) whose issue search answers with `issues`.
+func mockBoard(t *testing.T, issues func(r sent) (int, any)) *[]sent {
+	return mock(t, func(r sent) (int, any) {
+		switch {
+		case strings.HasPrefix(r.path, "/rest/agile/1.0/board?"):
+			return 200, Obj{"values": []any{Obj{"id": 9, "name": "AB Kanban board"}, Obj{"id": 7, "name": "AB Kanban"}}}
+		case r.path == "/rest/agile/1.0/board/7/configuration":
+			return 200, Obj{
+				"subQuery": Obj{"query": "fixVersion is EMPTY"},
+			}
+		case strings.HasPrefix(r.path, "/rest/agile/1.0/board/7/issue?"):
+			return issues(r)
 		}
-	}
-	for _, r := range []Request{{Scope: "bogus"}, {State: "bogus"}, {Project: "CR OR 1=1"}} {
-		if _, err := jql(r); err == nil {
-			t.Errorf("%+v: expected an error", r)
-		}
-	}
-}
-
-func TestListMapsIssuesAndPages(t *testing.T) {
-	log := mock(t, func(r sent) (int, any) {
-		return 200, Obj{"issues": []any{raw("CR-7", "Fix")}, "nextPageToken": "tok", "isLast": false}
+		t.Fatalf("unexpected %s %s", r.method, r.path)
+		return 0, nil
 	})
-	out, err := handle(context.Background(), Request{Action: "list", Scope: "mine", Cursor: "prev"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if r := (*log)[0]; r.method != "POST" || r.path != "/rest/api/3/search/jql" || r.body["nextPageToken"] != "prev" || r.body["maxResults"] != float64(50) {
-		t.Fatalf("request %+v", r)
-	}
-	items := array(object(out)["items"])
-	item := object(items[0])
-	if object(out)["cursor"] != "tok" || item["identifier"] != "CR-7" || item["url"] != "https://example.atlassian.net/browse/CR-7" ||
-		item["updatedAt"] != "2026-01-01T19:04:05Z" || object(item["state"])["type"] != "started" || object(item["assignee"])["displayName"] != "Ann" {
-		t.Fatalf("item %v", item)
-	}
 }
 
 func TestAMissingKeySearchIsNoMatch(t *testing.T) {
-	mock(t, func(r sent) (int, any) {
+	mockBoard(t, func(r sent) (int, any) {
 		return 400, Obj{"errorMessages": []any{"The issue key 'ZZ-1' for field 'key' is invalid."}}
 	})
-	out, err := handle(context.Background(), Request{Action: "list", Search: "ZZ-1"})
+	out, err := handle(context.Background(), Request{Action: "board", Board: "AB Kanban", Search: "ZZ-1"})
 	if err != nil || len(array(object(out)["items"])) != 0 {
 		t.Fatalf("got %v %v", out, err)
 	}
-	if _, err := handle(context.Background(), Request{Action: "list", Search: "text"}); err == nil || !strings.Contains(err.Error(), "is invalid") {
+	if _, err := handle(context.Background(), Request{Action: "board", Board: "AB Kanban", Search: "text"}); err == nil || !strings.Contains(err.Error(), "is invalid") {
 		t.Fatalf("expected Jira's message, got %v", err)
 	}
 }
@@ -213,7 +192,7 @@ func TestMarkdownToADF(t *testing.T) {
 	}
 }
 
-func TestListReturnsStoryFromParentChildLink(t *testing.T) {
+func TestBoardReturnsStoryFromParentChildLink(t *testing.T) {
 	link := func(kind, key, summary, category string) Obj {
 		return Obj{"type": Obj{"name": kind}, "inwardIssue": Obj{"key": key, "fields": Obj{
 			"summary": summary, "issuetype": Obj{"name": "Story"}, "status": Obj{"name": "In Progress", "statusCategory": Obj{"key": category}}}}}
@@ -224,19 +203,15 @@ func TestListReturnsStoryFromParentChildLink(t *testing.T) {
 		link("Parent-Child", "AB-10", "Hooks", "indeterminate"),
 		link("Parent-Child", "AB-11", "Second", "new"),
 	}
-	log := mock(t, func(r sent) (int, any) {
-		return 200, Obj{"issues": []any{task, raw("CR-5", "Alone")}, "isLast": true}
+	log := mockBoard(t, func(r sent) (int, any) {
+		return 200, Obj{"issues": []any{task, raw("CR-5", "Alone")}}
 	})
-	out, err := handle(context.Background(), Request{Action: "list", Scope: "mine"})
+	out, err := handle(context.Background(), Request{Action: "board", Board: "AB Kanban"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	asked := false
-	for _, f := range (*log)[0].body["fields"].([]any) {
-		asked = asked || f == "issuelinks"
-	}
-	if !asked {
-		t.Fatalf("fields %v lack issuelinks", (*log)[0].body["fields"])
+	if issues := (*log)[2].path; !strings.Contains(issues, "issuelinks") {
+		t.Fatalf("issue request %q lacks issuelinks", issues)
 	}
 	items := array(object(out)["items"])
 	story := object(object(items[0])["story"])
@@ -245,5 +220,32 @@ func TestListReturnsStoryFromParentChildLink(t *testing.T) {
 	}
 	if lone, _ := json.Marshal(object(items[1])["story"]); string(lone) != "null" {
 		t.Fatalf("lone item story %v", object(items[1])["story"])
+	}
+}
+
+func TestBoardReadsMyIssuesThroughItsFilter(t *testing.T) {
+	log := mockBoard(t, func(r sent) (int, any) {
+		return 200, Obj{"issues": []any{raw("AB-1", "One")}, "total": 1}
+	})
+	out, err := handle(context.Background(), Request{Action: "board", Board: "ab kanban", Search: "smoke"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	issues := (*log)[2].path
+	for _, want := range []string{"assignee+%3D+currentUser%28%29", "fixVersion+is+EMPTY", "text+~+%22smoke%22", "issuelinks"} {
+		if !strings.Contains(issues, want) {
+			t.Fatalf("issue request %q lacks %q", issues, want)
+		}
+	}
+	if items := array(object(out)["items"]); len(items) != 1 || object(items[0])["identifier"] != "AB-1" {
+		t.Fatalf("items %v", items)
+	}
+}
+
+func TestBoardWithAnUnknownNameSaysSo(t *testing.T) {
+	mock(t, func(r sent) (int, any) { return 200, Obj{"values": []any{}} })
+	_, err := handle(context.Background(), Request{Action: "board", Board: "Nope"})
+	if err == nil || !strings.Contains(err.Error(), `No Jira board named "Nope"`) {
+		t.Fatalf("err %v", err)
 	}
 }

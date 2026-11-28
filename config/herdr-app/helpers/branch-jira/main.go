@@ -26,11 +26,8 @@ type Request struct {
 	Identifier  string   `json:"identifier"`
 	Identifiers []string `json:"identifiers"`
 	Issue       string   `json:"issue"`
-	Scope       string   `json:"scope"`
-	State       string   `json:"state"`
-	Project     string   `json:"project"`
 	Search      string   `json:"search"`
-	Cursor      string   `json:"cursor"`
+	Board       string   `json:"board"`
 	Body        string   `json:"body"`
 }
 
@@ -40,7 +37,6 @@ var missingCreds = errors.New("JIRA_BASE_URL, JIRA_EMAIL and JIRA_API_TOKEN are 
 var rejectedCreds = errors.New("Jira rejected JIRA_EMAIL / JIRA_API_TOKEN. Export a valid API token, then refresh.")
 var keyPattern = regexp.MustCompile(`^([A-Za-z][A-Za-z0-9]*)-([1-9][0-9]*)$`)
 var idPattern = regexp.MustCompile(`^[0-9]+$`)
-var projectPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
 
 // Swapped in tests.
 var transport = httpDo
@@ -241,77 +237,82 @@ func viewer(ctx context.Context, c creds) (any, error) {
 	return Obj{"viewer": v}, nil
 }
 
-var stateClauses = map[string]string{
-	"active":  `statusCategory != Done`,
-	"todo":    `statusCategory = "To Do"`,
-	"started": `statusCategory = "In Progress"`,
-	"done":    `statusCategory = Done`,
-	"all":     "",
-}
-
 // Lucene's special characters can make a text search fail; they mean nothing to a person here.
 var textNoise = regexp.MustCompile(`[+\-&|!(){}\[\]^~*?\\:"/#]+`)
 
-func jql(r Request) (string, error) {
-	clauses := []string{}
-	switch r.Scope {
-	case "mine":
-		clauses = append(clauses, "assignee = currentUser()")
-	case "sprint":
-		clauses = append(clauses, "sprint in openSprints()")
-	case "", "all":
-	default:
-		return "", errors.New("invalid scope")
+// A key, or the words of a text search; "" when nothing is left to search for.
+func searchClause(q string) string {
+	if keyPattern.MatchString(q) {
+		return "key = " + strings.ToUpper(q)
 	}
-	state := r.State
-	if state == "" {
-		state = "active"
+	if words := strings.Join(strings.Fields(textNoise.ReplaceAllString(q, " ")), " "); words != "" {
+		return fmt.Sprintf("text ~ %q", words)
 	}
-	clause, ok := stateClauses[state]
-	if !ok {
-		return "", errors.New("invalid state")
-	}
-	if clause != "" {
-		clauses = append(clauses, clause)
-	}
-	if r.Project != "" {
-		if !projectPattern.MatchString(r.Project) {
-			return "", errors.New("invalid project key")
-		}
-		clauses = append(clauses, "project = "+r.Project)
-	}
-	if q := strings.TrimSpace(r.Search); q != "" {
-		if keyPattern.MatchString(q) {
-			clauses = append(clauses, "key = "+strings.ToUpper(q))
-		} else if words := strings.Join(strings.Fields(textNoise.ReplaceAllString(q, " ")), " "); words != "" {
-			clauses = append(clauses, fmt.Sprintf("text ~ %q", words))
-		}
-	}
-	// A JQL search needs at least one restriction.
-	if len(clauses) == 0 {
-		clauses = append(clauses, "created is not EMPTY")
-	}
-	return strings.Join(clauses, " AND ") + " ORDER BY updated DESC", nil
+	return ""
 }
 
-func list(ctx context.Context, c creds, r Request) (any, error) {
-	query, err := jql(r)
+// ── A board: my issues through its own filter ──────────────────────────
+
+// shortcut: one page of the most recently updated issues, enough for one person's board.
+const boardIssueLimit = 100
+
+func findBoard(ctx context.Context, c creds, name string) (int, error) {
+	var res struct {
+		Values []struct {
+			ID   int    `json:"id"`
+			Name string `json:"name"`
+		} `json:"values"`
+	}
+	path := "/rest/agile/1.0/board?" + url.Values{"name": {name}}.Encode()
+	if _, err := call(ctx, c, "GET", path, nil, &res); err != nil {
+		return 0, err
+	}
+	// Jira matches names by substring; only the exact one is this board.
+	for _, b := range res.Values {
+		if strings.EqualFold(b.Name, name) {
+			return b.ID, nil
+		}
+	}
+	return 0, fmt.Errorf("No Jira board named %q. Set settings.board.name in mods/branch-jira/mod.json.", name)
+}
+
+func board(ctx context.Context, c creds, r Request) (any, error) {
+	name := strings.TrimSpace(r.Board)
+	if name == "" {
+		return nil, errors.New("board name required")
+	}
+	id, err := findBoard(ctx, c, name)
 	if err != nil {
 		return nil, err
 	}
-	body := Obj{"jql": query, "maxResults": 50, "fields": strings.Split(cardFields, ",")}
-	if r.Cursor != "" {
-		body["nextPageToken"] = r.Cursor
+	var config struct {
+		SubQuery struct {
+			Query string `json:"query"`
+		} `json:"subQuery"`
+	}
+	if _, err := call(ctx, c, "GET", fmt.Sprintf("/rest/agile/1.0/board/%d/configuration", id), nil, &config); err != nil {
+		return nil, err
+	}
+	// The board's own filter applies by itself; its sub-filter (shipped work) does not.
+	clauses := []string{"assignee = currentUser()"}
+	if q := strings.TrimSpace(config.SubQuery.Query); q != "" {
+		clauses = append(clauses, "("+q+")")
+	}
+	if clause := searchClause(strings.TrimSpace(r.Search)); clause != "" {
+		clauses = append(clauses, clause)
+	}
+	query := url.Values{
+		"jql":        {strings.Join(clauses, " AND ") + " ORDER BY updated DESC"},
+		"fields":     {cardFields},
+		"maxResults": {fmt.Sprint(boardIssueLimit)},
 	}
 	var res struct {
-		Issues        []any  `json:"issues"`
-		NextPageToken string `json:"nextPageToken"`
-		IsLast        bool   `json:"isLast"`
+		Issues []any `json:"issues"`
 	}
-	status, err := call(ctx, c, "POST", "/rest/api/3/search/jql", body, &res)
+	status, err := call(ctx, c, "GET", fmt.Sprintf("/rest/agile/1.0/board/%d/issue?%s", id, query.Encode()), nil, &res)
 	// A key that names no issue (or no project) is an error to JQL, and no match to a person.
 	if status == 400 && keyPattern.MatchString(strings.TrimSpace(r.Search)) {
-		return Obj{"items": []any{}, "cursor": ""}, nil
+		return Obj{"board": Obj{"id": id, "name": name}, "items": []any{}}, nil
 	}
 	if err != nil {
 		return nil, err
@@ -320,11 +321,7 @@ func list(ctx context.Context, c creds, r Request) (any, error) {
 	for _, issue := range res.Issues {
 		items = append(items, card(c, issue))
 	}
-	next := res.NextPageToken
-	if res.IsLast {
-		next = ""
-	}
-	return Obj{"items": items, "cursor": next}, nil
+	return Obj{"board": Obj{"id": id, "name": name}, "items": items}, nil
 }
 
 // An issue by key (CR-123) or numeric id, with every comment; nil when Jira has none.
@@ -388,8 +385,8 @@ func handle(ctx context.Context, r Request) (any, error) {
 	switch r.Action {
 	case "viewer":
 		return viewer(ctx, c)
-	case "list":
-		return list(ctx, c, r)
+	case "board":
+		return board(ctx, c, r)
 	case "detail":
 		if r.Identifier == "" {
 			return nil, errors.New("identifier required")

@@ -40,7 +40,8 @@ const ASK_POLL_MS = 100;
 const DEFAULT_SETTINGS = {
   refresh: { every: "60s", search_debounce: "450ms" },
   branch: { max_identifiers: 4 },
-  list: { default: { scope: "mine", state: "active", project: "" } },
+  // The panel shows my issues on this Jira board, through the board's own filter.
+  board: { name: "CR Kanban" },
   worktrees: { root: "~/.herdr/worktrees", open_with: "terminal" },
 };
 
@@ -62,10 +63,11 @@ class JiraIssues extends View {
   init(_props, cx) {
     this.view = "all"; // the Branch tab was removed; status groups in All are the view
     this.reopenSaved = true;
-    this.closedGroups = new Set(this.readStoredList("closed-groups"));
+    // v2: groups are status categories now; the old per-status keys are dropped.
+    localStorage.removeItem("closed-groups");
+    this.closedGroups = new Set(this.readStoredList("closed-groups:v2"));
     this.branchIssues = [];
     this.items = [];
-    this.cursor = "";
     this.cache = {};
     this.listToken = 0;
     this.detailToken = 0;
@@ -73,14 +75,9 @@ class JiraIssues extends View {
     this.searchToken = 0;
 
     this.menuFocus = cx.focus_handle();
-    this.scopeTrigger = cx.focus_handle();
-    this.stateTrigger = cx.focus_handle();
 
     this.settings = DEFAULT_SETTINGS;
     this.settingsProblems = [];
-    this.scope = DEFAULT_SETTINGS.list.default.scope;
-    this.state = DEFAULT_SETTINGS.list.default.state;
-    this.project = DEFAULT_SETTINGS.list.default.project;
     this.section = "overview";
     this.search = InputState.new({ placeholder: "Search · CR-123 or text" });
     this.search.on("change", (_e, cx) => {

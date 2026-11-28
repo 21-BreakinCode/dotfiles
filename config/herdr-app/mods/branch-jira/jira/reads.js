@@ -52,12 +52,11 @@ export const readMethods = {
   },
 
   listKey() {
-    return `${this.spaceKey}:${this.scope}:${this.state}:${this.project}:${this.serverSearch ?? ""}`;
+    return `${this.spaceKey}:board:${this.settings.board.name}:${this.serverSearch ?? ""}`;
   },
 
-  // A refresh re-reads page one and keeps any further pages already loaded.
-  // shortcut: an item that left the filter stays until the next full load.
-  loadList(cx, more = false, refresh = false) {
+  // The board comes back whole, so a refresh replaces the list: shipped work leaves it.
+  loadList(cx, refresh = false) {
     if (!this.sp?.folder) return;
     this.rememberView();
     const token = ++this.listToken;
@@ -65,29 +64,17 @@ export const readMethods = {
     const list = this.listKey();
     this.loading = true;
     this.error = null;
-    if (!more && !refresh) {
+    if (!refresh) {
       this.items = this.cache[list]?.items ?? [];
-      this.cursor = this.cache[list]?.cursor ?? "";
     }
-    const request = {
-      action: "list",
-      scope: this.scope,
-      state: this.state,
-      project: this.project,
-      search: this.serverSearch ?? "",
-      cursor: more ? this.cursor : "",
-    };
+    const request = { action: "board", board: this.settings.board.name, search: this.serverSearch ?? "" };
     cx.spawn(async (cx) => {
       try {
         await this.ensureViewer();
         const data = await this.api(request);
         if (token !== this.listToken || key !== this.spaceKey) return;
-        const keep = refresh && this.items.length > data.items.length;
-        const merged = new Map((more || keep ? this.items : []).map((i) => [i.id, i]));
-        for (const item of data.items) merged.set(item.id, item);
-        this.items = [...merged.values()];
-        if (!keep) this.cursor = data.cursor ?? "";
-        this.cache[list] = { items: this.items, cursor: this.cursor };
+        this.items = data.items;
+        this.cache[list] = { items: this.items };
         this.refreshed = Date.now();
         this.lastUpdated = Date.now();
         // Only the first time: a branch change should show the list, not an old issue.
@@ -142,7 +129,7 @@ export const readMethods = {
   refresh(cx) {
     this.loadBranchIssues(cx);
     // Only what's on screen, to spare API quota, plus once for the tab's count.
-    if (this.view === "all" || !this.listLoaded) this.loadList(cx, false, this.listLoaded);
+    if (this.view === "all" || !this.listLoaded) this.loadList(cx, this.listLoaded);
     if (this.issue) this.openIssue(this.issue.identifier, cx);
   },
 };

@@ -335,9 +335,24 @@ export function Row({ id, onClick }) {
     );
 }
 
+// A detailed status (Peer Review, Verifying) as a small label in its status colour.
+export function StatusLabel(text, color) {
+  const tint = color ?? theme().muted;
+  return div()
+    .flex_none()
+    .px(5)
+    .py(1)
+    .rounded(4)
+    .border_1()
+    .border_color(`${tint.slice(0, 7)}66`)
+    .text_size(TEXT.badge)
+    .text_color(tint)
+    .child(text);
+}
+
 // An issue in a list: a title, then details with its identifier on the right, so
-// titles, details and identifiers each line up down the list.
-export function IssueRow({ id, icon, title, meta, identifier, onClick }) {
+// titles, details and identifiers each line up down the list. `label` sits after the title.
+export function IssueRow({ id, icon, title, label, meta, identifier, onClick }) {
   const t = theme();
   return v_flex()
     .id(id)
@@ -354,7 +369,8 @@ export function IssueRow({ id, icon, title, meta, identifier, onClick }) {
         .gap(8)
         .items_center()
         .child(icon)
-        .child(div().flex_1().min_w(0).truncate().child(title)),
+        .child(div().flex_1().min_w(0).truncate().child(title))
+        .when(Boolean(label), (el) => el.child(label)),
     )
     .child(
       h_flex()

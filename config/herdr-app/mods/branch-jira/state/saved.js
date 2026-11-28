@@ -2,8 +2,6 @@
 import { identifiersIn, searchQuery } from "../jira/model.js";
 
 const SECTIONS = ["overview", "comments"];
-const SCOPE_IDS = ["mine", "sprint", "all"];
-const STATE_IDS = ["active", "todo", "started", "done", "all"];
 const oneOf = (choices, value, fallback) => (choices.includes(value) ? value : fallback);
 
 export const savedMethods = {
@@ -26,7 +24,8 @@ export const savedMethods = {
   },
 
   viewKey() {
-    return `jira-view:v1:${this.sp?.machine ?? "local"}:${this.sp?.folder ?? ""}`;
+    // v2: the board replaced the scope and status filters, so v1's saved filters are dropped.
+    return `jira-view:v2:${this.sp?.machine ?? "local"}:${this.sp?.folder ?? ""}`;
   },
 
   rememberView() {
@@ -39,8 +38,6 @@ export const savedMethods = {
     localStorage.setItem(
       this.viewKey(),
       JSON.stringify({
-        scope: this.scope,
-        state: this.state,
         query: this.search.value(),
         selected: this.issue?.identifier ?? this.opening?.identifier ?? null,
       }),
@@ -49,11 +46,6 @@ export const savedMethods = {
 
   restoreView() {
     const saved = this.readStored(this.viewKey());
-    this.viewWasSaved = Boolean(saved.scope || saved.state);
-    const wanted = this.settings.list.default;
-    this.scope = oneOf(SCOPE_IDS, saved.scope, oneOf(SCOPE_IDS, wanted.scope, "mine"));
-    this.state = oneOf(STATE_IDS, saved.state, oneOf(STATE_IDS, wanted.state, "active"));
-    this.project = wanted.project;
     // Restoring text fires the same change event as typing; the caller is already
     // about to load this view.
     this.restoringSearch = true;
@@ -90,7 +82,7 @@ export const savedMethods = {
   // Which Overview and list groups are shut, the same for every issue.
   toggleGroup(key, cx) {
     if (!this.closedGroups.delete(key)) this.closedGroups.add(key);
-    localStorage.setItem("closed-groups", JSON.stringify([...this.closedGroups]));
+    localStorage.setItem("closed-groups:v2", JSON.stringify([...this.closedGroups]));
     cx.notify();
   },
 

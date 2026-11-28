@@ -34,7 +34,6 @@ export const discoveryMethods = {
     this.issue = null;
     this.opening = null;
     this.items = [];
-    this.cursor = "";
     this.error = null;
     this.loading = false;
     this.detailLoading = false;

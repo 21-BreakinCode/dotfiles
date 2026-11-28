@@ -102,60 +102,6 @@
             }
           }
         },
-        "list": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "default": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "scope": {
-                  "title": "First scope",
-                  "description": "The list's first scope, until a saved view exists.",
-                  "type": "string",
-                  "enum": [
-                    "mine",
-                    "sprint",
-                    "all"
-                  ],
-                  "x-labels": {
-                    "mine": "My issues",
-                    "sprint": "Open sprints",
-                    "all": "All issues"
-                  },
-                  "default": "mine"
-                },
-                "state": {
-                  "title": "First status",
-                  "description": "The list's first status-category filter, until a saved view exists.",
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "todo",
-                    "started",
-                    "done",
-                    "all"
-                  ],
-                  "x-labels": {
-                    "active": "Not done",
-                    "todo": "To Do",
-                    "started": "In Progress",
-                    "done": "Done",
-                    "all": "All statuses"
-                  },
-                  "default": "active"
-                },
-                "project": {
-                  "title": "Project",
-                  "description": "A Jira project key that limits the list, such as CR. Empty shows every project.",
-                  "type": "string",
-                  "default": ""
-                }
-              }
-            }
-          }
-        },
         "worktrees": {
           "type": "object",
           "additionalProperties": false,
@@ -171,6 +117,18 @@
               "description": "What a new worktree opens: terminal, or an installed agent's key such as claude.",
               "type": "string",
               "default": "terminal"
+            }
+          }
+        },
+        "board": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Board",
+              "description": "The Jira board the panel shows: its columns, and your issues through its filter.",
+              "type": "string",
+              "default": "CR Kanban"
             }
           }
         }

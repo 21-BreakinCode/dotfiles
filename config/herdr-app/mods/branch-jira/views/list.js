@@ -2,7 +2,7 @@
 import { div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { theme } from "herdr";
-import { person, statusTree, timeAgo } from "../jira/model.js";
+import { person, statusLabel, statusTree, timeAgo } from "../jira/model.js";
 import {
   TEXT,
   Busy,
@@ -15,9 +15,9 @@ import {
   IssueRow,
   Message,
   PanelHeader,
-  Row,
   SmallButton,
   StateDot,
+  StatusLabel,
   StoryHeader,
   TextButton,
   TextField,
@@ -25,20 +25,6 @@ import {
 } from "./ui.js";
 
 const NESTED_INDENT = 14;
-
-const SCOPES = [
-  { id: "mine", label: "My issues" },
-  { id: "sprint", label: "Open sprints" },
-  { id: "all", label: "All issues" },
-];
-const STATES = [
-  { id: "active", label: "Not done" },
-  { id: "todo", label: "To Do" },
-  { id: "started", label: "In Progress" },
-  { id: "done", label: "Done" },
-  { id: "all", label: "All statuses" },
-];
-const labelOf = (choices, id) => choices.find((c) => c.id === id)?.label ?? "";
 
 export const listMethods = {
   // Errors, confirmations and settings problems, under whichever header is showing.
@@ -124,8 +110,8 @@ export const listMethods = {
           .child(
             HeaderTab({
               id: "issue-view-all",
-              label: "All",
-              count: `${this.items.length}${this.cursor ? "+" : ""}`,
+              label: this.settings.board.name,
+              count: String(this.items.length),
               loading: this.allCountPending(),
               disabled: !this.listLoaded,
               active: this.view === "all",
@@ -138,62 +124,14 @@ export const listMethods = {
 
   filters() {
     const t = theme();
-    const pick = (id, label, accessibilityLabel, width, choices, value, triggerFocus, onChoose) =>
-      this.chooser({
-        id,
-        label,
-        accessibilityLabel,
-        anchor: "top_left",
-        width,
-        choices,
-        value,
-        triggerFocus,
-        onChoose,
-      });
-    const choosers = h_flex()
-      .gap(6)
-      .items_center()
-      .flex_wrap()
-      .child(
-        pick(
-          "issue-scope",
-          labelOf(SCOPES, this.scope),
-          "Whose issues",
-          150,
-          SCOPES,
-          this.scope,
-          this.scopeTrigger,
-          (scope, cx) => {
-            this.scope = scope;
-            this.loadList(cx);
-          },
-        ),
-      )
-      .child(
-        pick(
-          "issue-state",
-          labelOf(STATES, this.state),
-          "Status category",
-          130,
-          STATES,
-          this.state,
-          this.stateTrigger,
-          (state, cx) => {
-            this.state = state;
-            this.loadList(cx);
-          },
-        ),
-      );
-    return v_flex()
+    return h_flex()
       .id("issue-filter-row")
       .flex_none()
       .px(14)
       .py(10)
-      .gap(8)
       .border_b(1)
       .border_color(t.border)
-      .child(h_flex().child(TextField({ id: "issue-search-input", state: this.search })))
-      .child(choosers);
+      .child(TextField({ id: "issue-search-input", state: this.search }));
   },
 
   openFromList(identifier, cx) {
@@ -208,13 +146,14 @@ export const listMethods = {
   issueRow(issue, t, groupLabel = null, nested = false) {
     const owner = person(issue.assignee) || "Unassigned";
     const where = issue.priorityLabel;
-    const status = groupLabel && issue.state?.name !== groupLabel ? issue.state?.name : null;
+    const status = groupLabel ? statusLabel(issue, groupLabel) : null;
     const row = IssueRow({
       id: `issue-${issue.id}`,
       icon: groupLabel ? TypeChip(issue.type?.name) : StateDot(issue.state?.color),
       title: issue.title,
+      label: status ? StatusLabel(status, issue.state?.color) : null,
       identifier: issue.identifier,
-      meta: [status, owner, timeAgo(issue.updatedAt), where].filter(Boolean).join(" · "),
+      meta: [owner, timeAgo(issue.updatedAt), where].filter(Boolean).join(" · "),
       onClick: (cx) => this.openFromList(issue.identifier, cx),
     });
     return nested ? div().pl(NESTED_INDENT).child(row) : row;
@@ -316,17 +255,6 @@ export const listMethods = {
       );
       if (open) group.stories.forEach((bucket) => this.storyBucket(list, group, bucket, t));
     });
-    if (this.cursor)
-      list.child(
-        Row({
-          id: "issue-more",
-          onClick: this.loading || this.searchPending ? null : (cx) => this.loadList(cx, true),
-        })
-          .justify_center()
-          .text_size(TEXT.small)
-          .text_color(t.muted)
-          .child(this.loading ? "Loading…" : "+ more"),
-      );
     return list;
   },
 

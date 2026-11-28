@@ -77,7 +77,7 @@ export function panelShown(node, mod) {
 
 // ── Lists ───────────────────────────────────────────────────────────────────
 
-// Status groups in workflow order; the helper maps Jira's status categories to these types.
+// High-level groups in workflow order; the helper maps Jira's status categories to these types.
 const STATUS_GROUPS = [
   { type: "unstarted", label: "To Do" },
   { type: "started", label: "In Progress" },
@@ -125,16 +125,19 @@ function storyBuckets(items) {
 }
 
 export function statusTree(items) {
+  const known = (item) => STATUS_GROUPS.some((g) => g.type === item.state?.type);
   return [...STATUS_GROUPS, NO_STATE]
     .map(({ type, label }) => {
-      const inGroup = items.filter((item) =>
-        type === NO_STATE.type
-          ? !STATUS_GROUPS.some((g) => g.type === item.state?.type)
-          : item.state?.type === type,
-      );
+      const inGroup = items.filter((item) => (type === NO_STATE.type ? !known(item) : item.state?.type === type));
       return { type, label, color: inGroup[0]?.state?.color, count: inGroup.length, stories: storyBuckets(inGroup) };
     })
     .filter((group) => group.count > 0);
+}
+
+// The detailed status (Peer Review, Verifying) as a row label; null when the group says it already.
+export function statusLabel(item, groupLabel) {
+  const name = item.state?.name;
+  return name && name.toLowerCase() !== groupLabel?.toLowerCase() ? name : null;
 }
 
 // ── An issue at a glance ────────────────────────────────────────────────────
